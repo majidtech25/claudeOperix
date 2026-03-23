@@ -2,9 +2,20 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy.orm import DeclarativeBase
 from app.config import settings
 
+
+def get_database_url() -> str:
+    url = settings.DATABASE_URL
+    # Render provides postgres:// — SQLAlchemy needs postgresql+asyncpg://
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+    return url
+
+
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    get_database_url(),
     echo=settings.DEBUG,
+    # SQLite-specific args only
+    connect_args={"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {},
 )
 
 AsyncSessionLocal = async_sessionmaker(
@@ -32,15 +43,10 @@ async def get_db() -> AsyncSession:
 
 async def init_db():
     """Create all tables on startup."""
-    # Import each model module directly so SQLAlchemy Base knows all tables.
-    # Do NOT import via app.models.__init__ — use direct module imports to avoid circular chains.
-    import app.models.organization  # noqa: F401
-    import app.models.user  # noqa: F401
-    import app.models.subscription  # noqa: F401
-    import app.models.category  # noqa: F401
-    import app.models.product  # noqa: F401
-    import app.models.inventory  # noqa: F401
-    import app.models.sales_day  # noqa: F401
-    import app.models.sale  # noqa: F401
+    from app.models import (  # noqa: F401
+        organization, user, subscription, category,
+        product, inventory, sales_day, sale
+    )
+    import app.models.payment  # noqa: F401
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

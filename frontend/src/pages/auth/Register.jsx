@@ -1,12 +1,15 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { orgApi } from '../../api/services'
 import { Alert, Field, Input, BtnPrimary, BtnGhost } from '../../components/ui'
 
 export default function Register() {
-  const { login } = useAuth()
-  const navigate  = useNavigate()
+  const { login }        = useAuth()
+  const navigate         = useNavigate()
+  const [searchParams]   = useSearchParams()
+  const selectedPlan     = searchParams.get('plan') // 'basic' | 'pro' | null
+
   const [step, setStep]       = useState(1)
   const [error, setError]     = useState('')
   const [loading, setLoading] = useState(false)
@@ -26,7 +29,12 @@ export default function Register() {
       const { confirm, ...payload } = form
       await orgApi.register(payload)
       await login(form.owner_email, form.owner_password)
-      navigate('/dashboard')
+      // If came from a paid plan selection, go straight to billing
+      if (selectedPlan && selectedPlan !== 'trial') {
+        navigate(`/billing?plan=${selectedPlan}`, { replace: true })
+      } else {
+        navigate('/dashboard', { replace: true })
+      }
     } catch (err) { setError(err.response?.data?.detail ?? 'Registration failed.') }
     finally { setLoading(false) }
   }
@@ -34,19 +42,34 @@ export default function Register() {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex',
-      alignItems: 'center', justifyContent: 'center', padding: 20
+      alignItems: 'center', justifyContent: 'center', padding: 20,
+      background: 'var(--color-base)',
     }}>
       <div style={{ width: '100%', maxWidth: 380 }}>
+
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <h1 style={{
             fontFamily: 'var(--font-display)', fontWeight: 800,
-            fontSize: 34, color: 'white', letterSpacing: '-0.03em'
+            fontSize: 34, color: 'var(--color-text)', letterSpacing: '-0.03em'
           }}>
             Oper<span style={{ color: 'var(--color-accent)' }}>ix</span>
           </h1>
           <p style={{ color: 'var(--color-muted)', fontSize: 13, marginTop: 6 }}>
             14-day free trial · No card required
           </p>
+          {/* Show selected plan badge if coming from landing */}
+          {selectedPlan && selectedPlan !== 'trial' && (
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              marginTop: 10, padding: '4px 12px', borderRadius: 999,
+              background: 'rgba(110,231,183,0.1)',
+              border: '1px solid rgba(110,231,183,0.25)',
+              fontSize: 12, color: 'var(--color-accent)',
+              fontFamily: 'var(--font-mono)',
+            }}>
+              ✓ {selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} plan selected
+            </div>
+          )}
         </div>
 
         {/* Step indicator */}
@@ -58,11 +81,11 @@ export default function Register() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 600,
                 background: step >= s ? 'var(--color-accent)' : 'var(--color-base-200)',
-                color: step >= s ? 'var(--color-base)' : 'var(--color-muted)'
+                color: step >= s ? '#ffffff' : 'var(--color-muted)',
               }}>{s}</div>
               <span style={{
                 fontSize: 12,
-                color: step >= s ? 'white' : 'var(--color-muted)'
+                color: step >= s ? 'var(--color-text)' : 'var(--color-muted)'
               }}>
                 {s === 1 ? 'Business' : 'Account'}
               </span>
@@ -83,7 +106,7 @@ export default function Register() {
             <form onSubmit={next} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <p style={{
                 fontFamily: 'var(--font-display)', fontWeight: 700,
-                fontSize: 14, color: 'white', marginBottom: 4
+                fontSize: 14, color: 'var(--color-text)', marginBottom: 4
               }}>Business Information</p>
               <Alert type="error" message={error} onClose={() => setError('')} />
               <Field label="Business Name *">
@@ -98,11 +121,12 @@ export default function Register() {
               <BtnPrimary type="submit" style={{ width: '100%', marginTop: 4 }}>Continue →</BtnPrimary>
             </form>
           )}
+
           {step === 2 && (
             <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <p style={{
                 fontFamily: 'var(--font-display)', fontWeight: 700,
-                fontSize: 14, color: 'white', marginBottom: 4
+                fontSize: 14, color: 'var(--color-text)', marginBottom: 4
               }}>Owner Account</p>
               <Alert type="error" message={error} onClose={() => setError('')} />
               <Field label="Full Name *">
@@ -117,10 +141,23 @@ export default function Register() {
               <Field label="Confirm Password *">
                 <Input type="password" placeholder="Repeat password" value={form.confirm} onChange={set('confirm')} required />
               </Field>
+
+              {/* Show what happens next if paid plan */}
+              {selectedPlan && selectedPlan !== 'trial' && (
+                <div style={{
+                  padding: '10px 12px', borderRadius: 4,
+                  background: 'rgba(110,231,183,0.06)',
+                  border: '1px solid rgba(110,231,183,0.2)',
+                  fontSize: 12, color: 'var(--color-accent)', lineHeight: 1.6,
+                }}>
+                  After creating your account, you'll be taken directly to the billing page to activate your <strong>{selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)}</strong> plan.
+                </div>
+              )}
+
               <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                 <BtnGhost type="button" style={{ flex: 1 }} onClick={() => setStep(1)}>← Back</BtnGhost>
                 <BtnPrimary type="submit" style={{ flex: 1 }} disabled={loading}>
-                  {loading ? 'Creating…' : 'Create Account'}
+                  {loading ? 'Creating…' : selectedPlan && selectedPlan !== 'trial' ? 'Create & Pay →' : 'Create Account'}
                 </BtnPrimary>
               </div>
             </form>

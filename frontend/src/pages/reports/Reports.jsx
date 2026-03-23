@@ -34,11 +34,11 @@ function ReportsList() {
   const card = { background: 'var(--color-base-50)', border: '1px solid var(--color-border)', borderRadius: 6 }
   const row  = { borderBottom: '1px solid var(--color-border)' }
   const th   = { fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 16px', textAlign: 'left', fontWeight: 400 }
-  const td   = { fontSize: 13, color: 'rgba(255,255,255,.78)', padding: '10px 16px' }
+  const td   = { fontSize: 13, color: 'var(--color-text)', padding: '10px 16px' }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'white', margin: 0 }}>Reports</h1>
+      <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'var(--color-text)', margin: 0 }}>Reports</h1>
 
       {error && <Alert type="error" message={error} />}
 
@@ -61,6 +61,7 @@ function ReportsList() {
                 contentStyle={{ background: 'var(--color-base-100)', border: '1px solid var(--color-border)', borderRadius: 4, fontSize: 12 }}
                 formatter={v => [fmt(v), 'Revenue']}
                 labelStyle={{ color: 'var(--color-muted)' }}
+                itemStyle={{ color: 'var(--color-accent)' }}
               />
               <Bar dataKey="amount" radius={[3, 3, 0, 0]}>
                 {chartData.map((_, i) => (
@@ -92,7 +93,7 @@ function ReportsList() {
             ) : days.map(d => (
               <tr key={d.id} style={{ ...row, cursor: 'pointer' }}
                 onClick={() => navigate(`/reports/${d.id}`)}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,.02)'}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--color-base-100)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 <td style={{ ...td, fontFamily: 'var(--font-mono)', fontSize: 12 }}>{d.business_date}</td>
@@ -138,13 +139,13 @@ function DayReport({ dayId }) {
           background: 'none', border: 'none', cursor: 'pointer',
           color: 'var(--color-muted)', display: 'flex', padding: 4
         }}
-          onMouseEnter={e => e.currentTarget.style.color = 'white'}
+          onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
           onMouseLeave={e => e.currentTarget.style.color = 'var(--color-muted)'}
         >
           <ArrowLeft size={16} />
         </button>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'white', margin: 0 }}>Daily Report</h1>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'var(--color-text)', margin: 0 }}>Daily Report</h1>
           <p style={{ fontSize: 12, color: 'var(--color-muted)', fontFamily: 'var(--font-mono)', marginTop: 3 }}>{report.business_date}</p>
         </div>
         <Badge status={report.status} />
@@ -166,7 +167,7 @@ function DayReport({ dayId }) {
           ) : report.sales_by_employee?.map(e => (
             <div key={e.employee_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--color-border)' }}>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 500, color: 'white', margin: 0 }}>{e.employee_name}</p>
+                <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text)', margin: 0 }}>{e.employee_name}</p>
                 <p style={{ fontSize: 11, color: 'var(--color-muted)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>{e.transaction_count} sales</p>
               </div>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--color-accent)' }}>{fmt(e.total_sales)}</span>
@@ -184,7 +185,7 @@ function DayReport({ dayId }) {
             <div key={p.product_id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--color-border)' }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-muted)', width: 16 }}>{i + 1}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 12, color: 'white', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.product_name}</p>
+                <p style={{ fontSize: 12, color: 'var(--color-text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.product_name}</p>
                 <p style={{ fontSize: 10, color: 'var(--color-muted)', fontFamily: 'var(--font-mono)', margin: '2px 0 0' }}>{p.total_quantity} units</p>
               </div>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-accent)', flexShrink: 0 }}>{fmt(p.total_revenue)}</span>

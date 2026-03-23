@@ -51,7 +51,7 @@ export default function Dashboard() {
 
   const row  = { borderBottom: '1px solid var(--color-border)' }
   const th   = { fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 16px', textAlign: 'left', fontWeight: 400 }
-  const td   = { fontSize: 13, color: 'rgba(255,255,255,.78)', padding: '10px 16px' }
+  const td   = { fontSize: 13, color: 'var(--color-text)', padding: '10px 16px' }
   const card = { background: 'var(--color-base-50)', border: '1px solid var(--color-border)', borderRadius: 6 }
 
   return (
@@ -60,7 +60,7 @@ export default function Dashboard() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'white', margin: 0 }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'var(--color-text)', margin: 0 }}>
             Dashboard
           </h1>
           <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>
@@ -93,7 +93,7 @@ export default function Dashboard() {
               display: 'block', flexShrink: 0
             }} />
             <div>
-              <p style={{ fontSize: 13, fontFamily: 'var(--font-display)', fontWeight: 700, color: 'white' }}>
+              <p style={{ fontSize: 13, fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--color-text)' }}>
                 Sales Day Open — {s.openDay.business_date}
               </p>
               <p style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>
@@ -153,8 +153,8 @@ export default function Dashboard() {
               <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -22, bottom: 0 }}>
                 <defs>
                   <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%"   stopColor="#6ee7b7" stopOpacity={0.2} />
-                    <stop offset="100%" stopColor="#6ee7b7" stopOpacity={0}   />
+                    <stop offset="0%"   stopColor="var(--color-accent)" stopOpacity={0.2} />
+                    <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0}   />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="date"
@@ -191,7 +191,7 @@ export default function Dashboard() {
             </p>
           ) : s.lowStock.slice(0, 8).map(p => (
             <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid var(--color-border)' }}>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,.75)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140 }}>
+              <span style={{ fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140 }}>
                 {p.name}
               </span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-danger)', flexShrink: 0 }}>
@@ -227,7 +227,7 @@ export default function Dashboard() {
               <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-muted)', padding: 32, fontSize: 13 }}>No sales days yet</td></tr>
             ) : s.days.map(d => (
               <tr key={d.id} style={row}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,.02)'}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--color-base-100)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 <td style={{ ...td, fontFamily: 'var(--font-mono)', fontSize: 12 }}>{d.business_date}</td>
@@ -236,7 +236,10 @@ export default function Dashboard() {
                 <td style={td}><Badge status={d.status} /></td>
                 <td style={{ ...td, textAlign: 'right' }}>
                   {d.status === 'closed' && (
-                    <button onClick={() => navigate(`/reports/${d.id}`)} style={{ fontSize: 12, color: 'var(--color-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                    <button onClick={() => navigate(`/reports/${d.id}`)} style={{ fontSize: 12, color: 'var(--color-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+                      onMouseEnter={e => e.currentTarget.style.color = 'var(--color-accent)'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'var(--color-muted)'}
+                    >
                       Report →
                     </button>
                   )}

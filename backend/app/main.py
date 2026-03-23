@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
+import app.models.payment
 
 from app.config import settings
 from app.database import init_db
@@ -15,6 +16,8 @@ from app.routers import (
     sales_days_router,
     sales_router,
     subscriptions_router,
+    admin_router,
+    billing_router,
 )
 
 # ── Logging ──────────────────────────────────────────────────
@@ -59,7 +62,7 @@ app.add_middleware(
 
 # ── Routes ────────────────────────────────────────────────────
 API_PREFIX = "/api/v1"
-
+app.include_router(admin_router, prefix="/api/v1")
 app.include_router(auth_router, prefix=API_PREFIX)
 app.include_router(organizations_router, prefix=API_PREFIX)
 app.include_router(users_router, prefix=API_PREFIX)
@@ -69,6 +72,7 @@ app.include_router(inventory_router, prefix=API_PREFIX)
 app.include_router(sales_days_router, prefix=API_PREFIX)
 app.include_router(sales_router, prefix=API_PREFIX)
 app.include_router(subscriptions_router, prefix=API_PREFIX)
+app.include_router(billing_router, prefix=API_PREFIX)
 
 
 @app.get("/")

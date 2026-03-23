@@ -53,12 +53,13 @@ async def open_sales_day(
     await db.refresh(sales_day)
 
     log_audit_event(
-        action="SALES_DAY_OPENED",
-        performed_by_id=current_user.id,
-        organization_id=org_id,
-        target_resource="sales_day",
-        target_id=sales_day.id,
-        metadata={"business_date": sales_day.business_date},
+    action="SALES_DAY_OPENED",
+    performed_by_id=current_user.id,
+    organization_id=org_id,
+    target_resource="sales_day",
+    target_id=sales_day.id,
+    metadata={"business_date": sales_day.business_date},
+    impersonated_by=getattr(current_user, "_impersonated_by", None),  # ← add this
     )
 
     return sales_day
@@ -98,12 +99,13 @@ async def close_sales_day(
     await db.refresh(open_day)
 
     log_audit_event(
-        action="SALES_DAY_CLOSED",
-        performed_by_id=current_user.id,
-        organization_id=org_id,
-        target_resource="sales_day",
-        target_id=open_day.id,
-        metadata={"total_amount": total_amount, "total_transactions": total_transactions},
+    action="SALES_DAY_CLOSED",
+    performed_by_id=current_user.id,
+    organization_id=org_id,
+    target_resource="sales_day",
+    target_id=open_day.id,
+    metadata={"total_amount": total_amount, "total_transactions": total_transactions},
+    impersonated_by=getattr(current_user, "_impersonated_by", None),  # ← add this
     )
 
     return open_day

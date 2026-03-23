@@ -8,13 +8,23 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   const loadUser = useCallback(async () => {
-    if (!localStorage.getItem('access_token')) { setLoading(false); return }
+    // Check both tokens — impersonate_token takes priority
+    const hasToken = localStorage.getItem('impersonate_token') ||
+                     localStorage.getItem('access_token')
+    if (!hasToken) { setLoading(false); return }
     try {
       const { data } = await authApi.me()
       setUser(data)
     } catch {
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
+      // If impersonating and token fails, clear impersonation only
+      if (localStorage.getItem('impersonate_token')) {
+        localStorage.removeItem('impersonate_token')
+        localStorage.removeItem('impersonate_org')
+        window.location.href = '/admin/dashboard'
+      } else {
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('refresh_token')
+      }
     } finally { setLoading(false) }
   }, [])
 
@@ -29,6 +39,13 @@ export function AuthProvider({ children }) {
   }
 
   const logout = () => {
+    // If impersonating, end session and go back to admin
+    if (localStorage.getItem('impersonate_token')) {
+      localStorage.removeItem('impersonate_token')
+      localStorage.removeItem('impersonate_org')
+      window.location.href = '/admin/dashboard'
+      return
+    }
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
     setUser(null)

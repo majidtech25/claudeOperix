@@ -71,12 +71,15 @@ export function Modal({ open, onClose, title, children, width = 480 }) {
         }}>
           <span style={{
             fontFamily: 'var(--font-display)', fontWeight: 700,
-            fontSize: 14, color: 'white'
+            fontSize: 14, color: 'var(--color-text)'
           }}>{title}</span>
           <button onClick={onClose} style={{
             background: 'none', border: 'none', cursor: 'pointer',
             color: 'var(--color-muted)', display: 'flex', padding: 2
-          }}>
+          }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--color-muted)'}
+          >
             <X size={15} />
           </button>
         </div>
@@ -105,9 +108,11 @@ export function Field({ label, error, children }) {
 }
 
 const inputBase = {
-  width: '100%', background: 'var(--color-base)',
+  width: '100%',
+  background: 'var(--color-base)',
   border: '1px solid var(--color-border)',
-  color: 'white', fontSize: 13, padding: '7px 10px',
+  color: 'var(--color-text)',
+  fontSize: 13, padding: '7px 10px',
   borderRadius: 4, fontFamily: 'var(--font-sans)', outline: 'none',
   boxSizing: 'border-box'
 }
@@ -116,7 +121,7 @@ export function Input({ style: extra = {}, ...props }) {
   return (
     <input
       style={{ ...inputBase, ...extra }}
-      onFocus={e => e.target.style.borderColor = 'rgba(110,231,183,.5)'}
+      onFocus={e => e.target.style.borderColor = 'var(--color-accent)'}
       onBlur={e  => e.target.style.borderColor = 'var(--color-border)'}
       {...props}
     />
@@ -136,7 +141,7 @@ export function BtnPrimary({ children, style: extra = {}, ...props }) {
     <button style={{
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
       gap: 6, padding: '7px 16px', borderRadius: 4, border: 'none',
-      background: 'var(--color-accent)', color: 'var(--color-base)',
+      background: 'var(--color-accent)', color: '#ffffff',
       fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-sans)',
       cursor: 'pointer', ...extra
     }}
@@ -159,7 +164,7 @@ export function BtnGhost({ children, style: extra = {}, ...props }) {
       fontSize: 13, fontFamily: 'var(--font-sans)',
       cursor: 'pointer', ...extra
     }}
-      onMouseEnter={e => e.currentTarget.style.color = 'white'}
+      onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
       onMouseLeave={e => e.currentTarget.style.color = 'var(--color-muted)'}
       {...props}
     >
@@ -189,17 +194,17 @@ export function BtnDanger({ children, style: extra = {}, ...props }) {
 
 export function Badge({ status, label }) {
   const map = {
-    active:    ['rgba(110,231,183,.1)', 'rgba(110,231,183,.25)', '#6ee7b7'],
-    open:      ['rgba(110,231,183,.1)', 'rgba(110,231,183,.25)', '#6ee7b7'],
-    trial:     ['rgba(251,191,36,.1)',  'rgba(251,191,36,.25)',  '#fbbf24'],
-    basic:     ['rgba(96,165,250,.1)',  'rgba(96,165,250,.25)',  '#60a5fa'],
-    pro:       ['rgba(110,231,183,.1)', 'rgba(110,231,183,.25)', '#6ee7b7'],
-    expired:   ['rgba(248,113,113,.1)', 'rgba(248,113,113,.25)', '#f87171'],
-    suspended: ['rgba(248,113,113,.1)', 'rgba(248,113,113,.25)', '#f87171'],
+    active:    ['rgba(110,231,183,.1)', 'rgba(110,231,183,.25)', '#059669'],
+    open:      ['rgba(110,231,183,.1)', 'rgba(110,231,183,.25)', '#059669'],
+    trial:     ['rgba(251,191,36,.1)',  'rgba(251,191,36,.25)',  '#d97706'],
+    basic:     ['rgba(96,165,250,.1)',  'rgba(96,165,250,.25)',  '#2563eb'],
+    pro:       ['rgba(110,231,183,.1)', 'rgba(110,231,183,.25)', '#059669'],
+    expired:   ['rgba(248,113,113,.1)', 'rgba(248,113,113,.25)', '#dc2626'],
+    suspended: ['rgba(248,113,113,.1)', 'rgba(248,113,113,.25)', '#dc2626'],
     closed:    ['rgba(100,116,139,.1)', 'rgba(100,116,139,.25)', '#64748b'],
     inactive:  ['rgba(100,116,139,.1)', 'rgba(100,116,139,.25)', '#64748b'],
-    owner:     ['rgba(110,231,183,.1)', 'rgba(110,231,183,.25)', '#6ee7b7'],
-    employee:  ['rgba(96,165,250,.1)',  'rgba(96,165,250,.25)',  '#60a5fa'],
+    owner:     ['rgba(110,231,183,.1)', 'rgba(110,231,183,.25)', '#059669'],
+    employee:  ['rgba(96,165,250,.1)',  'rgba(96,165,250,.25)',  '#2563eb'],
   }
   const [bg, border, color] = map[status] ?? ['rgba(100,116,139,.1)', 'rgba(100,116,139,.25)', '#64748b']
   return (
@@ -231,7 +236,7 @@ export function StatCard({ label, value, sub, accent, icon: Icon }) {
       </div>
       <span style={{
         fontFamily: 'var(--font-mono)', fontSize: 22,
-        color: accent ? 'var(--color-accent)' : 'white', fontWeight: 500
+        color: accent ? 'var(--color-accent)' : 'var(--color-text)', fontWeight: 500
       }}>{value}</span>
       {sub && <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{sub}</span>}
     </div>
@@ -248,7 +253,7 @@ export function Empty({ icon: Icon = Package, title, description, action }) {
       <Icon size={28} color="var(--color-muted)" style={{ marginBottom: 4 }} />
       <p style={{
         fontFamily: 'var(--font-display)', fontWeight: 700,
-        fontSize: 13, color: 'rgba(255,255,255,.5)'
+        fontSize: 13, color: 'var(--color-text-muted)'
       }}>{title}</p>
       {description && (
         <p style={{ fontSize: 12, color: 'var(--color-muted)', maxWidth: 300 }}>{description}</p>

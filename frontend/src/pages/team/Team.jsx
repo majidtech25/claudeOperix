@@ -7,7 +7,7 @@ import { Modal, Field, Input, Select, BtnPrimary, BtnGhost, Alert, Badge, Empty,
 const card = { background: 'var(--color-base-50)', border: '1px solid var(--color-border)', borderRadius: 6 }
 const row  = { borderBottom: '1px solid var(--color-border)' }
 const th   = { fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 16px', textAlign: 'left', fontWeight: 400 }
-const td   = { fontSize: 13, color: 'rgba(255,255,255,.78)', padding: '10px 16px' }
+const td   = { fontSize: 13, color: 'var(--color-text)', padding: '10px 16px' }
 
 export default function Team() {
   const { user: me }          = useAuth()
@@ -36,7 +36,7 @@ export default function Team() {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'white', margin: 0 }}>Team</h1>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'var(--color-text)', margin: 0 }}>Team</h1>
           <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>{users.length} members</p>
         </div>
         {me?.role === 'owner' && (
@@ -62,7 +62,7 @@ export default function Team() {
               <tr><td colSpan={5}><Empty icon={Users} title="No team members" description="Add employees to your organisation" /></td></tr>
             ) : users.map(u => (
               <tr key={u.id} style={row}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,.02)'}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--color-base-100)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 <td style={td}>
@@ -78,7 +78,7 @@ export default function Team() {
                       {u.full_name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p style={{ fontSize: 13, fontWeight: 500, color: 'white', margin: 0 }}>{u.full_name}</p>
+                      <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text)', margin: 0 }}>{u.full_name}</p>
                       {u.id === me?.id && (
                         <span style={{ fontSize: 10, color: 'var(--color-muted)', fontFamily: 'var(--font-mono)' }}>you</span>
                       )}
@@ -93,8 +93,12 @@ export default function Team() {
                     {u.id !== me?.id && (
                       <button onClick={() => toggle(u)} style={{
                         fontSize: 12, background: 'none', border: 'none', cursor: 'pointer',
-                        color: u.is_active ? 'var(--color-danger)' : 'var(--color-accent)'
-                      }}>
+                        color: u.is_active ? 'var(--color-danger)' : 'var(--color-accent)',
+                        transition: 'opacity .15s'
+                      }}
+                        onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
+                        onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                      >
                         {u.is_active ? 'Deactivate' : 'Activate'}
                       </button>
                     )}

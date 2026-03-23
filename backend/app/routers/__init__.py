@@ -6,6 +6,8 @@ from app.routers.inventory import router as inventory_router
 from app.routers.sales_days import router as sales_days_router
 from app.routers.sales import router as sales_router
 from app.routers.subscriptions import router as subscriptions_router
+from app.routers.admin import router as admin_router 
+from app.routers.billing import router as billing_router
 
 __all__ = [
     "auth_router",
@@ -17,4 +19,6 @@ __all__ = [
     "sales_days_router",
     "sales_router",
     "subscriptions_router",
+    "admin_router", 
+    "billing_router",                                        # ← add this
 ]

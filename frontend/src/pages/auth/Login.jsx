@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { Alert, Field, Input, BtnPrimary } from '../../components/ui'
 
 export default function Login() {
-  const { login } = useAuth()
-  const navigate  = useNavigate()
+  const { login }        = useAuth()
+  const navigate         = useNavigate()
+  const [searchParams]   = useSearchParams()
   const [form, setForm]       = useState({ email: '', password: '' })
   const [showPw, setShowPw]   = useState(false)
   const [error, setError]     = useState('')
@@ -17,7 +18,12 @@ export default function Login() {
   const submit = async e => {
     e.preventDefault()
     setError(''); setLoading(true)
-    try { await login(form.email, form.password); navigate('/dashboard') }
+    try {
+      await login(form.email, form.password)
+      // Honour redirect param — e.g. from landing page "I already have an account"
+      const redirect = searchParams.get('redirect') || '/dashboard'
+      navigate(redirect, { replace: true })
+    }
     catch (err) { setError(err.response?.data?.detail ?? 'Invalid email or password.') }
     finally { setLoading(false) }
   }
@@ -25,13 +31,14 @@ export default function Login() {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex',
-      alignItems: 'center', justifyContent: 'center', padding: 20
+      alignItems: 'center', justifyContent: 'center', padding: 20,
+      background: 'var(--color-base)',
     }}>
       <div style={{ width: '100%', maxWidth: 360 }}>
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <h1 style={{
             fontFamily: 'var(--font-display)', fontWeight: 800,
-            fontSize: 36, color: 'white', letterSpacing: '-0.03em'
+            fontSize: 36, color: 'var(--color-text)', letterSpacing: '-0.03em'
           }}>
             Oper<span style={{ color: 'var(--color-accent)' }}>ix</span>
           </h1>
@@ -47,7 +54,7 @@ export default function Login() {
         }}>
           <p style={{
             fontFamily: 'var(--font-display)', fontWeight: 700,
-            fontSize: 15, color: 'white', marginBottom: 20
+            fontSize: 15, color: 'var(--color-text)', marginBottom: 20
           }}>Sign in to your workspace</p>
 
           <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -66,7 +73,10 @@ export default function Login() {
                   transform: 'translateY(-50%)',
                   background: 'none', border: 'none', cursor: 'pointer',
                   color: 'var(--color-muted)', display: 'flex'
-                }}>
+                }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--color-muted)'}
+                >
                   {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>

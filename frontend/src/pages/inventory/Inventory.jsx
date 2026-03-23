@@ -6,7 +6,7 @@ import { Modal, Field, Input, Select, BtnPrimary, BtnGhost, Alert, Badge, Empty,
 const card = { background: 'var(--color-base-50)', border: '1px solid var(--color-border)', borderRadius: 6 }
 const row  = { borderBottom: '1px solid var(--color-border)' }
 const th   = { fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 16px', textAlign: 'left', fontWeight: 400 }
-const td   = { fontSize: 13, color: 'rgba(255,255,255,.78)', padding: '10px 16px' }
+const td   = { fontSize: 13, color: 'var(--color-text)', padding: '10px 16px' }
 
 export default function Inventory() {
   const [tab, setTab]               = useState('products')
@@ -40,7 +40,7 @@ export default function Inventory() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'white', margin: 0 }}>Inventory</h1>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'var(--color-text)', margin: 0 }}>Inventory</h1>
         <div style={{ display: 'flex', gap: 8 }}>
           <BtnGhost onClick={() => setCategoryModal(true)}>+ Category</BtnGhost>
           <BtnPrimary onClick={() => { setEditProduct(null); setProductModal(true) }}>
@@ -93,17 +93,17 @@ export default function Inventory() {
                   const cat   = categories.find(c => c.id === p.category_id)
                   return (
                     <tr key={p.id} style={row}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,.02)'}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--color-base-100)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
                       <td style={td}>
-                        <p style={{ margin: 0, fontWeight: 500 }}>{p.name}</p>
+                        <p style={{ margin: 0, fontWeight: 500, color: 'var(--color-text)' }}>{p.name}</p>
                         {p.sku && <p style={{ margin: 0, fontSize: 11, color: 'var(--color-muted)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>{p.sku}</p>}
                       </td>
                       <td style={{ ...td, color: 'var(--color-muted)', fontSize: 12 }}>{cat?.name ?? '—'}</td>
                       <td style={{ ...td, fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{fmt(p.selling_price)}</td>
                       <td style={td}>
-                        <span style={{ fontFamily: 'var(--font-mono)', color: isLow ? 'var(--color-danger)' : 'white' }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', color: isLow ? 'var(--color-danger)' : 'var(--color-text)' }}>
                           {p.track_inventory ? p.stock_quantity : '∞'}
                         </span>
                         {isLow && <span style={{ fontSize: 10, color: 'var(--color-danger)', marginLeft: 5 }}>low</span>}
@@ -113,13 +113,13 @@ export default function Inventory() {
                         <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
                           <button title="Adjust stock" onClick={() => setAdjustModal(p)}
                             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', display: 'flex' }}
-                            onMouseEnter={e => e.currentTarget.style.color = 'white'}
+                            onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
                             onMouseLeave={e => e.currentTarget.style.color = 'var(--color-muted)'}>
                             <TrendingUp size={14} />
                           </button>
                           <button title="Edit" onClick={() => { setEditProduct(p); setProductModal(true) }}
                             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', display: 'flex' }}
-                            onMouseEnter={e => e.currentTarget.style.color = 'white'}
+                            onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
                             onMouseLeave={e => e.currentTarget.style.color = 'var(--color-muted)'}>
                             <Edit2 size={14} />
                           </button>
@@ -141,7 +141,7 @@ export default function Inventory() {
             ? <div style={{ gridColumn: '1/-1' }}><Empty title="No categories" description="Create categories to organise your products" /></div>
             : categories.map(c => (
               <div key={c.id} style={{ ...card, padding: '16px 18px' }}>
-                <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: 'white', margin: 0 }}>{c.name}</p>
+                <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: 'var(--color-text)', margin: 0 }}>{c.name}</p>
                 {c.description && <p style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4 }}>{c.description}</p>}
                 <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-muted)', marginTop: 10 }}>
                   {products.filter(p => p.category_id === c.id).length} products
@@ -286,10 +286,10 @@ function CategoryModal({ open, onClose, onSaved }) {
 
 function AdjustModal({ product, onClose, onSaved }) {
   const ACTIONS = [
-    { value: 'restock',    label: 'Restock (+)',           sign:  1 },
-    { value: 'adjustment', label: 'Manual Adjustment',     sign:  1 },
+    { value: 'restock',    label: 'Restock (+)',            sign:  1 },
+    { value: 'adjustment', label: 'Manual Adjustment',      sign:  1 },
     { value: 'damage',     label: 'Damage / Write-off (−)', sign: -1 },
-    { value: 'return',     label: 'Customer Return (+)',   sign:  1 },
+    { value: 'return',     label: 'Customer Return (+)',    sign:  1 },
   ]
   const [form, setForm]       = useState({ action: 'restock', qty: '', note: '' })
   const [error, setError]     = useState('')
@@ -316,7 +316,7 @@ function AdjustModal({ product, onClose, onSaved }) {
         <Alert type="error" message={error} onClose={() => setError('')} />
         <div style={{ background: 'var(--color-base)', border: '1px solid var(--color-border)', borderRadius: 4, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Current Stock</span>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 22, color: 'white' }}>{product?.stock_quantity}</span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 22, color: 'var(--color-text)' }}>{product?.stock_quantity}</span>
         </div>
         <Field label="Action">
           <Select value={form.action} onChange={e => setForm(f => ({ ...f, action: e.target.value }))}>

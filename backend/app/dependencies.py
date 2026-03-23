@@ -134,3 +134,25 @@ def get_organization_id(current_user: User = Depends(get_current_active_user)) -
             detail="User is not associated with an organization",
         )
     return current_user.organization_id
+
+async def require_write_access(
+    current_user: User = Depends(get_current_active_user),
+    token: str = Depends(oauth2_scheme),
+) -> User:
+    """
+    Previously blocked writes on impersonation tokens.
+    Now allows full access but attaches impersonation context
+    to the request state for audit logging.
+    Super admin impersonation sessions have full owner-level access.
+    """
+    try:
+        payload = decode_token(token)
+        impersonated_by = payload.get("impersonated_by")
+        if impersonated_by:
+            # Tag the user object so routers can pass this to audit logs
+            current_user._impersonated_by = impersonated_by
+        else:
+            current_user._impersonated_by = None
+    except JWTError:
+        current_user._impersonated_by = None
+    return current_user

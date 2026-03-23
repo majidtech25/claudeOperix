@@ -65,13 +65,14 @@ async def adjust_inventory(
     await db.refresh(log)
 
     log_audit_event(
-        action="INVENTORY_ADJUSTED",
-        performed_by_id=current_user.id,
-        organization_id=org_id,
-        target_resource="product",
-        target_id=product.id,
-        metadata={"change": data.quantity_change, "action": data.action},
-    )
+    action="INVENTORY_ADJUSTED",
+    performed_by_id=current_user.id,
+    organization_id=org_id,
+    target_resource="product",
+    target_id=product.id,
+    metadata={"change": data.quantity_change, "action": data.action},
+    impersonated_by=getattr(current_user, "_impersonated_by", None),  # ← add this
+)
 
     return log
 

@@ -6,7 +6,7 @@ import { Modal, Field, Input, Select, BtnPrimary, BtnGhost, BtnDanger, Alert, Ba
 const card = { background: 'var(--color-base-50)', border: '1px solid var(--color-border)', borderRadius: 6 }
 const row  = { borderBottom: '1px solid var(--color-border)' }
 const th   = { fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 16px', textAlign: 'left', fontWeight: 400 }
-const td   = { fontSize: 13, color: 'rgba(255,255,255,.78)', padding: '10px 16px' }
+const td   = { fontSize: 13, color: 'var(--color-text)', padding: '10px 16px' }
 const todayISO = () => new Date().toISOString().slice(0, 10)
 
 export default function Sales() {
@@ -41,7 +41,7 @@ export default function Sales() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'white', margin: 0 }}>Sales</h1>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'var(--color-text)', margin: 0 }}>Sales</h1>
         <div style={{ display: 'flex', gap: 8 }}>
           {openDay ? (
             <>
@@ -68,7 +68,7 @@ export default function Sales() {
               <p style={{ fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>
                 {item.label}
               </p>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 20, margin: 0, color: item.accent ? 'var(--color-accent)' : 'white' }}>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 20, margin: 0, color: item.accent ? 'var(--color-accent)' : 'var(--color-text)' }}>
                 {item.value}
               </p>
             </div>
@@ -77,7 +77,7 @@ export default function Sales() {
       ) : (
         <div style={{ ...card, padding: 52, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, borderStyle: 'dashed' }}>
           <Calendar size={30} style={{ color: 'var(--color-muted)' }} />
-          <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'rgba(255,255,255,.5)' }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--color-text-muted)' }}>
             No Sales Day Open
           </p>
           <p style={{ fontSize: 13, color: 'var(--color-muted)', textAlign: 'center', maxWidth: 340 }}>
@@ -112,7 +112,7 @@ export default function Sales() {
                 <tr><td colSpan={5}><Empty title="No sales yet" description="Record your first sale for today" /></td></tr>
               ) : sales.map(s => (
                 <tr key={s.id} style={row}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,.02)'}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--color-base-100)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
                   <td style={{ ...td, fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-accent)' }}>{s.receipt_number}</td>
@@ -185,7 +185,7 @@ function CloseDayModal({ open, onClose, onSaved, sales, total }) {
           {[['Transactions', sales.length], ['Total Revenue', fmt(total)]].map(([k, v]) => (
             <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--color-border)' }}>
               <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{k}</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'white' }}>{v}</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--color-text)' }}>{v}</span>
             </div>
           ))}
         </div>
@@ -259,7 +259,7 @@ function POSModal({ open, onClose, products, onSaved }) {
                 onMouseEnter={e => !e.currentTarget.disabled && (e.currentTarget.style.borderColor = 'var(--color-accent)')}
                 onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
               >
-                <p style={{ fontSize: 12, fontWeight: 500, color: 'white', margin: '0 0 5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text)', margin: '0 0 5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {p.name}
                 </p>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -286,8 +286,11 @@ function POSModal({ open, onClose, products, onSaved }) {
             ) : cart.map(({ product: p, qty }) => (
               <div key={p.id} style={{ background: 'var(--color-base)', border: '1px solid var(--color-border)', borderRadius: 4, padding: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7 }}>
-                  <span style={{ fontSize: 12, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{p.name}</span>
-                  <button onClick={() => setQty(p.id, 0)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', display: 'flex', padding: 1, flexShrink: 0 }}>
+                  <span style={{ fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{p.name}</span>
+                  <button onClick={() => setQty(p.id, 0)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', display: 'flex', padding: 1, flexShrink: 0 }}
+                    onMouseEnter={e => e.currentTarget.style.color = 'var(--color-danger)'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'var(--color-muted)'}
+                  >
                     <XIcon size={12} />
                   </button>
                 </div>
@@ -298,11 +301,11 @@ function POSModal({ open, onClose, products, onSaved }) {
                         width: 22, height: 22, borderRadius: 3,
                         background: 'var(--color-base-200)',
                         border: '1px solid var(--color-border)',
-                        cursor: 'pointer', color: 'white', fontSize: 13,
+                        cursor: 'pointer', color: 'var(--color-text)', fontSize: 13,
                         display: 'flex', alignItems: 'center', justifyContent: 'center'
                       }}>{label}</button>
                     ))}
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, minWidth: 18, textAlign: 'center', color: 'white' }}>{qty}</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, minWidth: 18, textAlign: 'center', color: 'var(--color-text)' }}>{qty}</span>
                   </div>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-accent)' }}>
                     {fmt(Number(p.selling_price) * qty)}

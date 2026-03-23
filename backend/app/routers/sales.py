@@ -128,17 +128,14 @@ async def create_sale(
 
     await db.commit()
 
-    # Reload with relationships
+    # Reload with eager-loaded items using selectinload (required for async)
+    from sqlalchemy.orm import selectinload
     result = await db.execute(
-        select(Sale).where(Sale.id == sale.id)
+        select(Sale)
+        .options(selectinload(Sale.items))
+        .where(Sale.id == sale.id)
     )
     sale = result.scalar_one()
-    # Eagerly load items
-    items_result = await db.execute(
-        select(SaleItem).where(SaleItem.sale_id == sale.id)
-    )
-    sale.items  # trigger load via relationship — SQLAlchemy async needs explicit load
-    await db.refresh(sale)
 
     return sale
 
