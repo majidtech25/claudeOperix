@@ -19,10 +19,14 @@ export default function Login() {
     e.preventDefault()
     setError(''); setLoading(true)
     try {
-      await login(form.email, form.password)
-      // Honour redirect param — e.g. from landing page "I already have an account"
-      const redirect = searchParams.get('redirect') || '/dashboard'
-      navigate(redirect, { replace: true })
+      const user = await login(form.email, form.password)
+      // Redirect based on role
+      if (user?.role === 'super_admin') {
+        navigate('/admin/dashboard', { replace: true })
+      } else {
+        const redirect = searchParams.get('redirect') || '/dashboard'
+        navigate(redirect, { replace: true })
+      }
     }
     catch (err) { setError(err.response?.data?.detail ?? 'Invalid email or password.') }
     finally { setLoading(false) }

@@ -33,15 +33,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('access_token',  data.access_token)
     localStorage.setItem('refresh_token', data.refresh_token)
     setUser(data.user)
-
-    // Redirect based on role
-    if (data.user?.role === 'super_admin') {
-      window.location.href = '/admin/dashboard'
-    } else {
-      window.location.href = '/dashboard'
-    }
-
-    return data.user
+    return data.user  // let Login.jsx handle the redirect
   }
 
   const logout = () => {
