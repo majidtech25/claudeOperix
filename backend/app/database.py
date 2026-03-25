@@ -5,8 +5,12 @@ from app.config import settings
 
 def get_database_url() -> str:
     url = settings.DATABASE_URL
+    # Fix Render's postgres:// shorthand
     if url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+    # Fix plain postgresql:// (missing +asyncpg)
+    if url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
     return url
 
 
