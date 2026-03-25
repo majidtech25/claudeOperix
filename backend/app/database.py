@@ -5,17 +5,17 @@ from app.config import settings
 
 def get_database_url() -> str:
     url = settings.DATABASE_URL
-    # Render provides postgres:// — SQLAlchemy needs postgresql+asyncpg://
     if url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql+asyncpg://", 1)
     return url
 
 
+DATABASE_URL = get_database_url()
+
 engine = create_async_engine(
-    get_database_url(),
+    DATABASE_URL,
     echo=settings.DEBUG,
-    # SQLite-specific args only
-    connect_args={"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {},
+    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {},
 )
 
 AsyncSessionLocal = async_sessionmaker(
