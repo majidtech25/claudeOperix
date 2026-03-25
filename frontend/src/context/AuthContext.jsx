@@ -8,7 +8,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   const loadUser = useCallback(async () => {
-    // Check both tokens — impersonate_token takes priority
     const hasToken = localStorage.getItem('impersonate_token') ||
                      localStorage.getItem('access_token')
     if (!hasToken) { setLoading(false); return }
@@ -16,7 +15,6 @@ export function AuthProvider({ children }) {
       const { data } = await authApi.me()
       setUser(data)
     } catch {
-      // If impersonating and token fails, clear impersonation only
       if (localStorage.getItem('impersonate_token')) {
         localStorage.removeItem('impersonate_token')
         localStorage.removeItem('impersonate_org')
@@ -35,11 +33,18 @@ export function AuthProvider({ children }) {
     localStorage.setItem('access_token',  data.access_token)
     localStorage.setItem('refresh_token', data.refresh_token)
     setUser(data.user)
+
+    // Redirect based on role
+    if (data.user?.role === 'super_admin') {
+      window.location.href = '/admin/dashboard'
+    } else {
+      window.location.href = '/dashboard'
+    }
+
     return data.user
   }
 
   const logout = () => {
-    // If impersonating, end session and go back to admin
     if (localStorage.getItem('impersonate_token')) {
       localStorage.removeItem('impersonate_token')
       localStorage.removeItem('impersonate_org')

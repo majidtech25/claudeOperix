@@ -15,22 +15,42 @@ import BillingCancel  from './pages/billing/BillingCancel'
 import { Spinner }    from './components/ui'
 import AdminLogin     from './pages/admin/AdminLogin'
 import AdminPortal    from './pages/admin/AdminPortal'
-import Settings from './pages/settings/Settings'
+import Settings       from './pages/settings/Settings'
 
-function Guard({ children }) {
-  const { user, loading } = useAuth()
-  if (loading) return (
+// ── Loading spinner ───────────────────────────────────────────
+function LoadingScreen() {
+  return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <Spinner size={28} />
     </div>
   )
-  return user ? children : <Navigate to="/login" replace />
 }
 
+// ── Merchant guard — logged in + NOT superadmin ───────────────
+function Guard({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return <LoadingScreen />
+  if (!user) return <Navigate to="/login" replace />
+  if (user.role === 'super_admin') return <Navigate to="/admin/dashboard" replace />
+  return children
+}
+
+// ── Admin guard — logged in + IS superadmin ───────────────────
+function AdminGuard({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return <LoadingScreen />
+  if (!user) return <Navigate to="/login" replace />
+  if (user.role !== 'super_admin') return <Navigate to="/dashboard" replace />
+  return children
+}
+
+// ── Public route — redirect logged-in users by role ──────────
 function Public({ children }) {
   const { user, loading } = useAuth()
   if (loading) return null
-  return user ? <Navigate to="/dashboard" replace /> : children
+  if (!user) return children
+  if (user.role === 'super_admin') return <Navigate to="/admin/dashboard" replace />
+  return <Navigate to="/dashboard" replace />
 }
 
 export default function App() {
@@ -38,14 +58,19 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/admin/login"     element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminPortal />} />
-          <Route path="/"                element={<Landing />} />
-          <Route path="/login"           element={<Public><Login /></Public>} />
-          <Route path="/register"        element={<Public><Register /></Public>} />
-          {/* Billing standalone pages — no sidebar needed */}
+          {/* Public */}
+          <Route path="/"         element={<Landing />} />
+          <Route path="/login"    element={<Public><Login /></Public>} />
+          <Route path="/register" element={<Public><Register /></Public>} />
+
+          {/* Billing standalone pages */}
           <Route path="/billing/success" element={<BillingSuccess />} />
           <Route path="/billing/cancel"  element={<BillingCancel />} />
+
+          {/* Admin routes */}
+          <Route path="/admin/login"     element={<Public><AdminLogin /></Public>} />
+          <Route path="/admin/dashboard" element={<AdminGuard><AdminPortal /></AdminGuard>} />
+
           {/* Protected merchant app */}
           <Route element={<Guard><Layout /></Guard>}>
             <Route path="/dashboard"      element={<Dashboard />} />
@@ -55,8 +80,9 @@ export default function App() {
             <Route path="/reports/:dayId" element={<Reports />} />
             <Route path="/team"           element={<Team />} />
             <Route path="/billing"        element={<Billing />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/settings"       element={<Settings />} />
           </Route>
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
