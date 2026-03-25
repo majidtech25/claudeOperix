@@ -6,6 +6,7 @@ from sqlalchemy.orm import selectinload
 from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel
 from typing import Optional
+import uuid
 
 from app.database import get_db
 from app.models.user import User, UserRole
@@ -15,7 +16,7 @@ from app.models.sale import Sale
 from app.models.sales_day import SalesDay
 from app.models.product import Product
 from app.dependencies import require_super_admin
-from app.utils.security import create_access_token
+from app.utils.security import create_access_token, hash_password, verify_password
 
 router = APIRouter(prefix="/admin", tags=["Super Admin"])
 
@@ -89,6 +90,65 @@ class ImpersonateResponse(BaseModel):
     read_only: bool = True
 
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
+class SuperAdminSetupRequest(BaseModel):
+    setup_key: str  # A secret key to prevent unauthorized access
+    email: str
+    password: str
+    full_name: str
+
+
+# ── One-Time Superadmin Setup ──────────────────────────────────────────────────
+
+@router.post("/setup-superadmin", tags=["Super Admin"])
+async def setup_superadmin(
+    data: SuperAdminSetupRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    One-time endpoint to create the first superadmin.
+    Requires a setup_key to prevent unauthorized access.
+    Disable or delete this endpoint after first use.
+    """
+    # Change this key to something secret only you know!
+    SETUP_KEY = "operix-setup-2024"
+
+    if data.setup_key != SETUP_KEY:
+        raise HTTPException(status_code=403, detail="Invalid setup key")
+
+    # Check if a superadmin already exists
+    existing = await db.scalar(
+        select(func.count(User.id)).where(User.role == UserRole.SUPER_ADMIN)
+    )
+    if existing and existing > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="A superadmin already exists. This endpoint is disabled."
+        )
+
+    # Create the superadmin
+    user = User(
+        id=str(uuid.uuid4()),
+        full_name=data.full_name,
+        email=data.email,
+        hashed_password=hash_password(data.password),
+        role=UserRole.SUPER_ADMIN,
+        organization_id=None,
+        is_active=True,
+    )
+    db.add(user)
+    await db.commit()
+
+    return {
+        "message": f"✅ Superadmin created successfully: {data.email}",
+        "warning": "⚠️ Delete or disable this endpoint now!"
+    }
+
+
 # ── Platform Stats ─────────────────────────────────────────────────────────────
 
 @router.get("/stats", response_model=PlatformStats)
@@ -96,23 +156,16 @@ async def get_platform_stats(
     _: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    # Org counts
     total_orgs = await db.scalar(select(func.count(Organization.id)))
     active_orgs = await db.scalar(select(func.count(Organization.id)).where(Organization.is_active == True))
     suspended_orgs = await db.scalar(
         select(func.count(Subscription.id)).where(Subscription.status == SubscriptionStatus.SUSPENDED)
     )
-
-    # User count (exclude superadmins)
     total_users = await db.scalar(
         select(func.count(User.id)).where(User.role != UserRole.SUPER_ADMIN)
     )
-
-    # Sales stats
     total_sales = await db.scalar(select(func.count(Sale.id))) or 0
     total_revenue = await db.scalar(select(func.sum(Sale.total_amount))) or 0.0
-
-    # Plan breakdown
     trial_orgs = await db.scalar(
         select(func.count(Subscription.id)).where(Subscription.plan == PlanType.TRIAL)
     ) or 0
@@ -156,7 +209,6 @@ async def list_organizations(
         if search and search.lower() not in org.name.lower() and search.lower() not in org.email.lower():
             continue
 
-        # Count sales for this org
         sale_count = await db.scalar(
             select(func.count(Sale.id)).where(Sale.organization_id == org.id)
         ) or 0
@@ -200,7 +252,6 @@ async def get_organization(
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
 
-    # Revenue
     revenue = await db.scalar(
         select(func.sum(Sale.total_amount)).where(Sale.organization_id == org_id)
     ) or 0.0
@@ -272,7 +323,6 @@ async def suspend_organization(
         raise HTTPException(status_code=404, detail="Organization not found")
     org.is_active = False
 
-    # Also suspend their subscription
     sub_result = await db.execute(
         select(Subscription).where(Subscription.organization_id == org_id)
     )
@@ -302,7 +352,6 @@ async def update_subscription(
 
     if data.plan is not None:
         sub.plan = data.plan
-        # Update limits based on plan
         if data.plan == PlanType.TRIAL:
             sub.max_users = 1
         elif data.plan == PlanType.BASIC:
@@ -336,11 +385,6 @@ async def impersonate_organization(
     admin: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Issue a short-lived full-access token scoped to the target org owner.
-    Token carries impersonation=True and impersonated_by=admin.id for audit trail.
-    All writes made in this session are tagged in audit logs.
-    """
     result = await db.execute(
         select(Organization).where(Organization.id == org_id)
     )
@@ -358,7 +402,6 @@ async def impersonate_organization(
     if not owner:
         raise HTTPException(status_code=404, detail="No owner found for this organization")
 
-    # Full access token — read_only removed, impersonated_by retained for audit trail
     token = create_access_token(
         data={
             "sub": owner.id,
@@ -385,11 +428,9 @@ async def impersonate_organization(
         org_id=org_id,
         org_name=org.name,
     )
-from app.utils.security import hash_password, verify_password
 
-class ChangePasswordRequest(BaseModel):
-    current_password: str
-    new_password: str
+
+# ── Change Password ────────────────────────────────────────────────────────────
 
 @router.post("/change-password")
 async def change_password(
@@ -399,7 +440,7 @@ async def change_password(
 ):
     if not verify_password(data.current_password, admin.hashed_password):
         raise HTTPException(status_code=400, detail="Current password is incorrect")
-    
+
     if len(data.new_password) < 8:
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
 
