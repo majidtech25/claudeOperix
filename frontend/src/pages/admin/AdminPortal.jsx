@@ -7,6 +7,7 @@ import {
   RefreshCw, Eye, AlertTriangle, X
 } from 'lucide-react'
 import { superAdminApi } from '../../api/adminServices'
+import { useAuth } from '../../context/AuthContext'
 
 const fmt = v => new Intl.NumberFormat('en-KE', {
   style: 'currency', currency: 'KES', maximumFractionDigits: 0
@@ -18,13 +19,12 @@ const fmtDate = d => d ? new Date(d).toLocaleDateString('en-KE', {
 
 // ── Layout ─────────────────────────────────────────────────────────────────────
 function AdminLayout({ children, page, setPage }) {
-  const navigate  = useNavigate()
-  const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}')
+  const navigate        = useNavigate()
+  const { user: adminUser, logout: authLogout } = useAuth()
 
   const logout = () => {
-    localStorage.removeItem('admin_access_token')
-    localStorage.removeItem('admin_user')
-    navigate('/admin/login')
+    authLogout()
+    navigate('/login')
   }
 
   const NAV = [
@@ -83,7 +83,7 @@ function AdminLayout({ children, page, setPage }) {
           <div style={{ padding: '6px 8px 10px', cursor: 'pointer' }}
             onClick={() => setPage('settings')}
           >
-            <p style={{ fontSize: 12, color: 'white', margin: '0 0 2px', fontWeight: 500 }}>{adminUser.full_name}</p>
+            <p style={{ fontSize: 12, color: 'white', margin: '0 0 2px', fontWeight: 500 }}>{adminUser?.full_name}</p>
             <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', margin: 0, fontFamily: '"DM Mono", monospace' }}>
               super_admin · <span style={{ color: '#60a5fa' }}>settings</span>
             </p>
@@ -139,7 +139,7 @@ function DashboardPage() {
   useEffect(() => {
     superAdminApi.stats()
       .then(r => setStats(r.data))
-      .catch(() => setError('Failed to load stats. Check the backend is running and the admin router is registered.'))
+      .catch(() => setError('Failed to load stats. Check the backend is running.'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -194,12 +194,12 @@ function DashboardPage() {
 
 // ── Organizations Page ─────────────────────────────────────────────────────────
 function OrganizationsPage() {
-  const [orgs, setOrgs]             = useState([])
-  const [loading, setLoading]       = useState(true)
-  const [search, setSearch]         = useState('')
-  const [selected, setSelected]     = useState(null)
+  const [orgs, setOrgs]                   = useState([])
+  const [loading, setLoading]             = useState(true)
+  const [search, setSearch]               = useState('')
+  const [selected, setSelected]           = useState(null)
   const [actionLoading, setActionLoading] = useState(false)
-  const [msg, setMsg]               = useState('')
+  const [msg, setMsg]                     = useState('')
   const [impersonating, setImpersonating] = useState(null)
 
   const load = () => {
@@ -216,7 +216,6 @@ function OrganizationsPage() {
       localStorage.setItem('impersonate_token', data.access_token)
       localStorage.setItem('impersonate_org', JSON.stringify({ id: org.id, name: org.name }))
       setImpersonating({ orgId: org.id, orgName: org.name, token: data.access_token })
-      // Redirect to merchant app — full page reload so client.js picks up the new token
       window.location.href = '/dashboard'
     } catch (err) {
       setMsg('Failed to impersonate: ' + (err.response?.data?.detail ?? 'Unknown error'))
@@ -450,9 +449,9 @@ function OrgModal({ org, onClose, onActivate, onSuspend, onImpersonate, actionLo
           {detail && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
               {[
-                { l: 'Users',   v: detail.user_count            },
-                { l: 'Sales',   v: detail.total_sales            },
-                { l: 'Revenue', v: fmt(detail.total_revenue)     },
+                { l: 'Users',   v: detail.user_count        },
+                { l: 'Sales',   v: detail.total_sales        },
+                { l: 'Revenue', v: fmt(detail.total_revenue) },
               ].map(s => (
                 <div key={s.l} style={{ padding: '12px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6 }}>
                   <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 5px' }}>{s.l}</p>
@@ -643,11 +642,11 @@ function SubscriptionsPage() {
 
 // ── Settings Page ──────────────────────────────────────────────────────────────
 function SettingsPage() {
+  const { user: adminUser } = useAuth()
   const [form, setForm]       = useState({ current_password: '', new_password: '', confirm_password: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
   const [success, setSuccess] = useState('')
-  const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}')
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
@@ -699,11 +698,11 @@ function SettingsPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>Name</span>
-            <span style={{ fontSize: 13, color: 'white', fontWeight: 500 }}>{adminUser.full_name}</span>
+            <span style={{ fontSize: 13, color: 'white', fontWeight: 500 }}>{adminUser?.full_name}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>Email</span>
-            <span style={{ fontSize: 13, color: 'white', fontFamily: '"DM Mono", monospace' }}>{adminUser.email}</span>
+            <span style={{ fontSize: 13, color: 'white', fontFamily: '"DM Mono", monospace' }}>{adminUser?.email}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>Role</span>
@@ -765,16 +764,21 @@ function SettingsPage() {
 
 // ── Main export ────────────────────────────────────────────────────────────────
 export default function AdminPortal() {
-  const navigate = useNavigate()
-  const [page, setPage] = useState('dashboard')
+  const { user, loading } = useAuth()
+  const navigate          = useNavigate()
+  const [page, setPage]   = useState('dashboard')
 
   useEffect(() => {
-    const token = localStorage.getItem('admin_access_token')
-    const user  = JSON.parse(localStorage.getItem('admin_user') || '{}')
-    if (!token || user.role !== 'super_admin') {
-      navigate('/admin/login')
+    if (!loading && (!user || user.role !== 'super_admin')) {
+      navigate('/login')
     }
-  }, [])
+  }, [user, loading])
+
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0d14', color: 'white' }}>
+      Loading…
+    </div>
+  )
 
   const pages = {
     dashboard:     <DashboardPage />,
