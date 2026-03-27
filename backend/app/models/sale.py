@@ -28,7 +28,11 @@ class Sale(Base):
     receipt_number: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
 
     total_amount: Mapped[float] = mapped_column(Numeric(14, 2), nullable=False)
-    payment_method: Mapped[PaymentMethod] = mapped_column(SAEnum(PaymentMethod), nullable=False, default=PaymentMethod.CASH)
+    payment_method: Mapped[PaymentMethod] = mapped_column(
+        SAEnum(PaymentMethod, values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
+        default=PaymentMethod.CASH
+    )
 
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
 
