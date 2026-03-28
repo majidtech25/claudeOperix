@@ -58,6 +58,7 @@ app.add_middleware(
         "http://localhost:5173",       # Vite dev server
         "http://localhost:3000",       # Alternative dev server
         "https://operix-frontend.onrender.com",  # Production frontend
+        "https://operix.onrender.com",  # a new one
     ],
     allow_credentials=True,
     allow_methods=["*"],
