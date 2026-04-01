@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { Alert, Field, Input, BtnPrimary, BtnGhost, Spinner } from '../../components/ui'
+import { Alert, Field, Input, BtnPrimary, Spinner } from '../../components/ui'
 import api from '../../api/client'
 
 export default function Settings() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const [tab, setTab] = useState('profile')
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 640 }}>
       <div>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'var(--color-text)', margin: 0 }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, color: 'var(--color-text)', margin: 0 }}>
           Settings
         </h1>
         <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>
@@ -38,13 +38,14 @@ export default function Settings() {
 }
 
 function ProfileForm() {
-  const [form, setForm]     = useState({ name: '', email: '', phone: '', address: '' })
+  const [form, setForm]       = useState({ name: '', email: '', phone: '', address: '' })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState('')
   const [success, setSuccess] = useState('')
 
-  const card = { background: 'var(--color-base-50)', border: '1px solid var(--color-border)', borderRadius: 6, padding: '24px' }
+  const isMobile = window.innerWidth < 640
+  const card = { background: 'var(--color-base-50)', border: '1px solid var(--color-border)', borderRadius: 6, padding: isMobile ? '16px' : '24px' }
 
   useEffect(() => {
     api.get('/organizations/me')
@@ -71,14 +72,20 @@ function ProfileForm() {
     } finally { setSaving(false) }
   }
 
-  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><Spinner size={24} /></div>
+  if (loading) return (
+    <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
+      <Spinner size={24} />
+    </div>
+  )
 
   return (
     <div style={card}>
       <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <Alert type="error"   message={error}   onClose={() => setError('')}   />
         <Alert type="success" message={success} onClose={() => setSuccess('')} />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+
+        {/* Single column on mobile, two columns on desktop */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
           <Field label="Business Name *">
             <Input value={form.name} onChange={set('name')} required placeholder="My Shop Ltd" />
           </Field>
@@ -86,7 +93,7 @@ function ProfileForm() {
             <Input type="email" value={form.email} onChange={set('email')} placeholder="info@myshop.com" />
           </Field>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
           <Field label="Phone">
             <Input value={form.phone} onChange={set('phone')} placeholder="+254 700 000 000" />
           </Field>
@@ -95,7 +102,7 @@ function ProfileForm() {
           </Field>
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
-          <BtnPrimary type="submit" disabled={saving}>
+          <BtnPrimary type="submit" disabled={saving} style={{ width: isMobile ? '100%' : 'auto' }}>
             {saving ? 'Saving…' : 'Save Changes'}
           </BtnPrimary>
         </div>
@@ -110,7 +117,8 @@ function PasswordForm() {
   const [error, setError]     = useState('')
   const [success, setSuccess] = useState('')
 
-  const card = { background: 'var(--color-base-50)', border: '1px solid var(--color-border)', borderRadius: 6, padding: '24px' }
+  const isMobile = window.innerWidth < 640
+  const card = { background: 'var(--color-base-50)', border: '1px solid var(--color-border)', borderRadius: 6, padding: isMobile ? '16px' : '24px' }
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
   const submit = async e => {
@@ -145,7 +153,7 @@ function PasswordForm() {
           <Input type="password" value={form.confirm} onChange={set('confirm')} required placeholder="Repeat new password" />
         </Field>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
-          <BtnPrimary type="submit" disabled={loading}>
+          <BtnPrimary type="submit" disabled={loading} style={{ width: isMobile ? '100%' : 'auto' }}>
             {loading ? 'Updating…' : 'Change Password'}
           </BtnPrimary>
         </div>

@@ -49,26 +49,28 @@ export default function Dashboard() {
     amount: Number(d.total_sales_amount)
   }))
 
+  const isMobile = window.innerWidth < 640
+
   const row  = { borderBottom: '1px solid var(--color-border)' }
-  const th   = { fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 16px', textAlign: 'left', fontWeight: 400 }
-  const td   = { fontSize: 13, color: 'var(--color-text)', padding: '10px 16px' }
+  const th   = { fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 12px', textAlign: 'left', fontWeight: 400 }
+  const td   = { fontSize: 13, color: 'var(--color-text)', padding: '10px 12px' }
   const card = { background: 'var(--color-base-50)', border: '1px solid var(--color-border)', borderRadius: 6 }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'var(--color-text)', margin: 0 }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, color: 'var(--color-text)', margin: 0 }}>
             Dashboard
           </h1>
-          <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>
+          <p style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4 }}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
         </div>
         {s.subscription && (
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             <Badge status={s.subscription.plan} />
             <Badge status={s.subscription.status} />
           </div>
@@ -80,8 +82,9 @@ export default function Dashboard() {
       {/* Sales day banner */}
       {s.openDay ? (
         <div style={{
-          ...card, padding: '13px 18px',
+          ...card, padding: '13px 16px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          flexWrap: 'wrap', gap: 8,
           borderColor: 'rgba(110,231,183,.2)',
           background: 'linear-gradient(90deg,rgba(110,231,183,.05) 0%,transparent 100%)'
         }}>
@@ -103,15 +106,16 @@ export default function Dashboard() {
           </div>
           <button onClick={() => navigate('/sales')} style={{
             fontSize: 12, color: 'var(--color-accent)',
-            background: 'none', border: 'none', cursor: 'pointer'
+            background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0
           }}>
             View Sales →
           </button>
         </div>
       ) : (
         <div style={{
-          ...card, padding: '13px 18px',
+          ...card, padding: '13px 16px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          flexWrap: 'wrap', gap: 8,
           borderColor: 'rgba(251,191,36,.2)', background: 'rgba(251,191,36,.04)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -127,24 +131,32 @@ export default function Dashboard() {
           </div>
           <button onClick={() => navigate('/sales')} style={{
             fontSize: 12, color: 'var(--color-warning)',
-            background: 'none', border: 'none', cursor: 'pointer'
+            background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0
           }}>
             Open Day →
           </button>
         </div>
       )}
 
-      {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
+      {/* Stats — 2 cols on mobile, 4 on desktop */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)',
+        gap: 10
+      }}>
         <StatCard label="Today's Sales"  value={fmt(todayTotal)} accent icon={TrendingUp} sub={`${s.todaySales.length} transactions`} />
         <StatCard label="All Time Total" value={fmt(allTotal)}         icon={TrendingUp} sub={`${s.days.length} days recorded`} />
         <StatCard label="Low Stock"      value={s.lowStock.length}     icon={Package}    sub="items need restocking" />
         <StatCard label="Sales Days"     value={s.days.length}         icon={ShoppingCart} sub="total recorded" />
       </div>
 
-      {/* Chart + Low Stock */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
-        <div style={{ ...card, padding: 20 }}>
+      {/* Chart + Low Stock — stack on mobile */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr',
+        gap: 16
+      }}>
+        <div style={{ ...card, padding: 16 }}>
           <p style={{ fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 18 }}>
             Sales History
           </p>
@@ -181,7 +193,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div style={{ ...card, padding: 20 }}>
+        <div style={{ ...card, padding: 16 }}>
           <p style={{ fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
             <AlertTriangle size={11} style={{ color: 'var(--color-warning)' }} /> Low Stock
           </p>
@@ -191,7 +203,7 @@ export default function Dashboard() {
             </p>
           ) : s.lowStock.slice(0, 8).map(p => (
             <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid var(--color-border)' }}>
-              <span style={{ fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140 }}>
+              <span style={{ fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '75%' }}>
                 {p.name}
               </span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-danger)', flexShrink: 0 }}>
@@ -202,7 +214,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent days table */}
+      {/* Recent days table — scrollable on mobile */}
       <div style={card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 16px', borderBottom: '1px solid var(--color-border)' }}>
           <p style={{ fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -212,42 +224,45 @@ export default function Dashboard() {
             All Reports →
           </button>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={row}>
-              <th style={th}>Date</th>
-              <th style={th}>Transactions</th>
-              <th style={th}>Revenue</th>
-              <th style={th}>Status</th>
-              <th style={th}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {s.days.length === 0 ? (
-              <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-muted)', padding: 32, fontSize: 13 }}>No sales days yet</td></tr>
-            ) : s.days.map(d => (
-              <tr key={d.id} style={row}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--color-base-100)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >
-                <td style={{ ...td, fontFamily: 'var(--font-mono)', fontSize: 12 }}>{d.business_date}</td>
-                <td style={{ ...td, fontFamily: 'var(--font-mono)' }}>{d.total_transactions}</td>
-                <td style={{ ...td, fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{fmt(d.total_sales_amount)}</td>
-                <td style={td}><Badge status={d.status} /></td>
-                <td style={{ ...td, textAlign: 'right' }}>
-                  {d.status === 'closed' && (
-                    <button onClick={() => navigate(`/reports/${d.id}`)} style={{ fontSize: 12, color: 'var(--color-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
-                      onMouseEnter={e => e.currentTarget.style.color = 'var(--color-accent)'}
-                      onMouseLeave={e => e.currentTarget.style.color = 'var(--color-muted)'}
-                    >
-                      Report →
-                    </button>
-                  )}
-                </td>
+        {/* Wrap table in scrollable div for mobile */}
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 420 }}>
+            <thead>
+              <tr style={row}>
+                <th style={th}>Date</th>
+                <th style={th}>Transactions</th>
+                <th style={th}>Revenue</th>
+                <th style={th}>Status</th>
+                <th style={th}></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {s.days.length === 0 ? (
+                <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-muted)', padding: 32, fontSize: 13 }}>No sales days yet</td></tr>
+              ) : s.days.map(d => (
+                <tr key={d.id} style={row}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--color-base-100)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <td style={{ ...td, fontFamily: 'var(--font-mono)', fontSize: 12 }}>{d.business_date}</td>
+                  <td style={{ ...td, fontFamily: 'var(--font-mono)' }}>{d.total_transactions}</td>
+                  <td style={{ ...td, fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{fmt(d.total_sales_amount)}</td>
+                  <td style={td}><Badge status={d.status} /></td>
+                  <td style={{ ...td, textAlign: 'right' }}>
+                    {d.status === 'closed' && (
+                      <button onClick={() => navigate(`/reports/${d.id}`)} style={{ fontSize: 12, color: 'var(--color-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+                        onMouseEnter={e => e.currentTarget.style.color = 'var(--color-accent)'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'var(--color-muted)'}
+                      >
+                        Report →
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>

@@ -25,6 +25,8 @@ function ReportsList() {
 
   if (loading) return <PageLoader />
 
+  const isMobile = window.innerWidth < 640
+
   const totalRevenue = days.reduce((s, d) => s + Number(d.total_sales_amount), 0)
   const totalTx      = days.reduce((s, d) => s + d.total_transactions, 0)
   const chartData    = [...days].reverse().slice(-14).map(d => ({
@@ -33,23 +35,24 @@ function ReportsList() {
 
   const card = { background: 'var(--color-base-50)', border: '1px solid var(--color-border)', borderRadius: 6 }
   const row  = { borderBottom: '1px solid var(--color-border)' }
-  const th   = { fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 16px', textAlign: 'left', fontWeight: 400 }
-  const td   = { fontSize: 13, color: 'var(--color-text)', padding: '10px 16px' }
+  const th   = { fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 12px', textAlign: 'left', fontWeight: 400 }
+  const td   = { fontSize: 13, color: 'var(--color-text)', padding: '10px 12px' }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'var(--color-text)', margin: 0 }}>Reports</h1>
+      <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, color: 'var(--color-text)', margin: 0 }}>Reports</h1>
 
       {error && <Alert type="error" message={error} />}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
-        <StatCard label="Total Revenue"       value={fmt(totalRevenue)} accent sub={`${days.length} closed days`} />
-        <StatCard label="Total Transactions"  value={totalTx} />
-        <StatCard label="Avg Revenue / Day"   value={fmt(days.length ? totalRevenue / days.length : 0)} />
+      {/* Stats — 1 col on mobile, 3 on desktop */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: 12 }}>
+        <StatCard label="Total Revenue"      value={fmt(totalRevenue)} accent sub={`${days.length} closed days`} />
+        <StatCard label="Total Transactions" value={totalTx} />
+        <StatCard label="Avg Revenue / Day"  value={fmt(days.length ? totalRevenue / days.length : 0)} />
       </div>
 
       {chartData.length > 0 && (
-        <div style={{ ...card, padding: 20 }}>
+        <div style={{ ...card, padding: 16 }}>
           <p style={{ fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 18 }}>
             Revenue — Last 14 Days
           </p>
@@ -73,40 +76,71 @@ function ReportsList() {
         </div>
       )}
 
+      {/* All Closed Days */}
       <div style={card}>
-        <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--color-border)' }}>
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border)' }}>
           <p style={{ fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>All Closed Days</p>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={row}>
-              <th style={th}>Date</th>
-              <th style={th}>Transactions</th>
-              <th style={th}>Revenue</th>
-              <th style={th}>Avg Sale</th>
-              <th style={th}></th>
-            </tr>
-          </thead>
-          <tbody>
+
+        {/* Mobile: card list */}
+        {isMobile ? (
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {days.length === 0 ? (
-              <tr><td colSpan={5}><Empty title="No closed days yet" description="Close a sales day to see reports here" /></td></tr>
+              <Empty title="No closed days yet" description="Close a sales day to see reports here" />
             ) : days.map(d => (
-              <tr key={d.id} style={{ ...row, cursor: 'pointer' }}
+              <div key={d.id}
                 onClick={() => navigate(`/reports/${d.id}`)}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--color-base-100)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border)', cursor: 'pointer' }}
               >
-                <td style={{ ...td, fontFamily: 'var(--font-mono)', fontSize: 12 }}>{d.business_date}</td>
-                <td style={{ ...td, fontFamily: 'var(--font-mono)' }}>{d.total_transactions}</td>
-                <td style={{ ...td, fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{fmt(d.total_sales_amount)}</td>
-                <td style={{ ...td, fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-muted)' }}>
-                  {d.total_transactions ? fmt(d.total_sales_amount / d.total_transactions) : '—'}
-                </td>
-                <td style={{ ...td, textAlign: 'right', color: 'var(--color-muted)', fontSize: 12 }}>View →</td>
-              </tr>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{d.business_date}</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--color-accent)', fontWeight: 600 }}>{fmt(d.total_sales_amount)}</span>
+                </div>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{d.total_transactions} transactions</span>
+                  <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>
+                    Avg: {d.total_transactions ? fmt(d.total_sales_amount / d.total_transactions) : '—'}
+                  </span>
+                  <span style={{ fontSize: 12, color: 'var(--color-accent)', marginLeft: 'auto' }}>View →</span>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        ) : (
+          /* Desktop: table */
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 420 }}>
+              <thead>
+                <tr style={row}>
+                  <th style={th}>Date</th>
+                  <th style={th}>Transactions</th>
+                  <th style={th}>Revenue</th>
+                  <th style={th}>Avg Sale</th>
+                  <th style={th}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {days.length === 0 ? (
+                  <tr><td colSpan={5}><Empty title="No closed days yet" description="Close a sales day to see reports here" /></td></tr>
+                ) : days.map(d => (
+                  <tr key={d.id} style={{ ...row, cursor: 'pointer' }}
+                    onClick={() => navigate(`/reports/${d.id}`)}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--color-base-100)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <td style={{ ...td, fontFamily: 'var(--font-mono)', fontSize: 12 }}>{d.business_date}</td>
+                    <td style={{ ...td, fontFamily: 'var(--font-mono)' }}>{d.total_transactions}</td>
+                    <td style={{ ...td, fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{fmt(d.total_sales_amount)}</td>
+                    <td style={{ ...td, fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-muted)' }}>
+                      {d.total_transactions ? fmt(d.total_sales_amount / d.total_transactions) : '—'}
+                    </td>
+                    <td style={{ ...td, textAlign: 'right', color: 'var(--color-muted)', fontSize: 12 }}>View →</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -129,12 +163,14 @@ function DayReport({ dayId }) {
   if (error)   return <Alert type="error" message={error} />
   if (!report) return null
 
+  const isMobile = window.innerWidth < 640
   const card = { background: 'var(--color-base-50)', border: '1px solid var(--color-border)', borderRadius: 6 }
-  const row  = { borderBottom: '1px solid var(--color-border)' }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <button onClick={() => navigate('/reports')} style={{
           background: 'none', border: 'none', cursor: 'pointer',
           color: 'var(--color-muted)', display: 'flex', padding: 4
@@ -145,20 +181,22 @@ function DayReport({ dayId }) {
           <ArrowLeft size={16} />
         </button>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'var(--color-text)', margin: 0 }}>Daily Report</h1>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, color: 'var(--color-text)', margin: 0 }}>Daily Report</h1>
           <p style={{ fontSize: 12, color: 'var(--color-muted)', fontFamily: 'var(--font-mono)', marginTop: 3 }}>{report.business_date}</p>
         </div>
         <Badge status={report.status} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
+      {/* Stats — 1 col on mobile, 3 on desktop */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: 12 }}>
         <StatCard label="Total Revenue"  value={fmt(report.total_amount)} accent />
         <StatCard label="Transactions"   value={report.total_transactions} />
         <StatCard label="Avg Sale"       value={report.total_transactions ? fmt(report.total_amount / report.total_transactions) : '—'} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <div style={{ ...card, padding: 20 }}>
+      {/* Employee + Products — stack on mobile */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+        <div style={{ ...card, padding: 16 }}>
           <p style={{ fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Users size={11} /> By Employee
           </p>
@@ -175,7 +213,7 @@ function DayReport({ dayId }) {
           ))}
         </div>
 
-        <div style={{ ...card, padding: 20 }}>
+        <div style={{ ...card, padding: 16 }}>
           <p style={{ fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Package size={11} /> Top Products
           </p>

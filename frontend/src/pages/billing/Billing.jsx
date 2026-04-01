@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { CheckCircle2, CreditCard, Smartphone, Zap, Shield, Users } from 'lucide-react'
+import { CheckCircle2, CreditCard, Smartphone } from 'lucide-react'
 import { useTheme } from '../../context/ThemeContext'
-import { Alert, BtnPrimary, BtnGhost, Spinner, fmt } from '../../components/ui'
+import { Alert, BtnPrimary, BtnGhost, Spinner } from '../../components/ui'
 import api from '../../api/client'
 
 const PLANS = [
@@ -34,12 +34,12 @@ export default function Billing() {
   const [modal, setModal]     = useState(null)
   const [history, setHistory] = useState([])
 
+  const isMobile = window.innerWidth < 640
+
   useEffect(() => {
-    // Load billing status
     api.get('/billing/status')
       .then(r => {
         setSub(r.data)
-        // Auto-open modal if redirected from register with a plan
         const params = new URLSearchParams(window.location.search)
         const plan   = params.get('plan')
         if (plan && (plan === 'basic' || plan === 'pro')) {
@@ -51,7 +51,6 @@ export default function Billing() {
       .catch(() => setError('Failed to load billing info'))
       .finally(() => setLoading(false))
 
-    // Load payment history — separate call, not nested
     api.get('/billing/history')
       .then(r => setHistory(r.data))
       .catch(() => {})
@@ -69,7 +68,7 @@ export default function Billing() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 900 }}>
 
       <div>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'var(--color-text)', margin: 0 }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, color: 'var(--color-text)', margin: 0 }}>
           Billing & Subscription
         </h1>
         <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>
@@ -79,13 +78,13 @@ export default function Billing() {
 
       {error && <Alert type="error" message={error} onClose={() => setError('')} />}
 
-      {/* Current plan */}
+      {/* Current plan — 2 cols on mobile, 4 on desktop */}
       {sub && (
-        <div style={{ ...card, padding: '20px 24px' }}>
+        <div style={{ ...card, padding: '16px 20px' }}>
           <p style={{ fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>
             Current Plan
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: 16 }}>
             {[
               { label: 'Plan',      value: sub.plan.toUpperCase()                               },
               { label: 'Status',    value: sub.status.toUpperCase()                             },
@@ -94,7 +93,7 @@ export default function Billing() {
             ].map((s, i) => (
               <div key={i}>
                 <p style={{ fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>{s.label}</p>
-                <p style={{ fontFamily: 'var(--font-mono)', fontSize: 16, margin: 0, fontWeight: 500, color: s.accent ? 'var(--color-danger)' : 'var(--color-text)' }}>{s.value}</p>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: isMobile ? 14 : 16, margin: 0, fontWeight: 500, color: s.accent ? 'var(--color-danger)' : 'var(--color-text)' }}>{s.value}</p>
               </div>
             ))}
           </div>
@@ -108,15 +107,15 @@ export default function Billing() {
         </div>
       )}
 
-      {/* Plan cards */}
+      {/* Plan cards — stack on mobile */}
       <div>
         <p style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 16 }}>
           Choose a plan to upgrade or renew your subscription. All prices in KES.
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
           {PLANS.map(p => (
             <div key={p.key} style={{
-              ...card, padding: '28px 24px', position: 'relative',
+              ...card, padding: '24px 20px', position: 'relative',
               border: p.featured
                 ? '1px solid var(--color-accent)'
                 : '1px solid var(--color-border)',
@@ -133,12 +132,12 @@ export default function Billing() {
                 }}>MOST POPULAR</div>
               )}
               <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.1em', color: p.featured ? 'var(--color-accent)' : 'var(--color-muted)', margin: '0 0 8px' }}>{p.name}</p>
-              <p style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, letterSpacing: '-0.025em', margin: '0 0 3px', color: 'var(--color-text)' }}>
+              <p style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 26, letterSpacing: '-0.025em', margin: '0 0 3px', color: 'var(--color-text)' }}>
                 KES {p.price.toLocaleString()}
               </p>
               <p style={{ fontSize: 12, color: 'var(--color-muted)', margin: '0 0 8px' }}>{p.period}</p>
               <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: '0 0 20px' }}>{p.desc}</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
                 {p.features.map(f => (
                   <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <CheckCircle2 size={13} color="var(--color-accent)" style={{ flexShrink: 0 }} />
@@ -146,10 +145,7 @@ export default function Billing() {
                   </div>
                 ))}
               </div>
-              <BtnPrimary
-                style={{ width: '100%' }}
-                onClick={() => setModal(p)}
-              >
+              <BtnPrimary style={{ width: '100%' }} onClick={() => setModal(p)}>
                 {sub?.plan === p.key ? 'Renew Plan' : 'Upgrade to ' + p.name}
               </BtnPrimary>
             </div>
@@ -157,32 +153,29 @@ export default function Billing() {
         </div>
       </div>
 
-      {/* Payment History — sibling of plan cards, NOT nested inside */}
+      {/* Payment History */}
       {history.length > 0 && (
         <div style={card}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--color-border)' }}>
+          <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--color-border)' }}>
             <p style={{ fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
               Payment History
             </p>
           </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-                {['Date', 'Method', 'Amount', 'Reference', 'Status'].map(h => (
-                  <th key={h} style={{ fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 16px', textAlign: 'left', fontWeight: 400 }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+
+          {/* Mobile: card list */}
+          {isMobile ? (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
               {history.map(p => (
-                <tr key={p.id} style={{ borderBottom: '1px solid var(--color-border)' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--color-base-100)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                >
-                  <td style={{ fontSize: 12, color: 'var(--color-muted)', padding: '10px 16px', fontFamily: 'var(--font-mono)' }}>
-                    {new Date(p.created_at).toLocaleDateString('en-KE')}
-                  </td>
-                  <td style={{ padding: '10px 16px' }}>
+                <div key={p.id} style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <span style={{ fontSize: 12, color: 'var(--color-muted)', fontFamily: 'var(--font-mono)' }}>
+                      {new Date(p.created_at).toLocaleDateString('en-KE')}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--color-accent)', fontWeight: 600 }}>
+                      KES {p.amount.toLocaleString()}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                     <span style={{
                       fontSize: 11, fontFamily: 'var(--font-mono)',
                       padding: '2px 8px', borderRadius: 3,
@@ -192,14 +185,6 @@ export default function Billing() {
                     }}>
                       {p.method.toUpperCase()}
                     </span>
-                  </td>
-                  <td style={{ fontSize: 13, color: 'var(--color-accent)', padding: '10px 16px', fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
-                    KES {p.amount.toLocaleString()}
-                  </td>
-                  <td style={{ fontSize: 11, color: 'var(--color-muted)', padding: '10px 16px', fontFamily: 'var(--font-mono)' }}>
-                    {p.transaction_reference ?? '—'}
-                  </td>
-                  <td style={{ padding: '10px 16px' }}>
                     <span style={{
                       fontSize: 11, fontFamily: 'var(--font-mono)',
                       padding: '2px 8px', borderRadius: 3,
@@ -209,33 +194,85 @@ export default function Billing() {
                     }}>
                       {p.status}
                     </span>
-                  </td>
-                </tr>
+                    {p.transaction_reference && (
+                      <span style={{ fontSize: 11, color: 'var(--color-muted)', fontFamily: 'var(--font-mono)', marginLeft: 'auto' }}>
+                        {p.transaction_reference}
+                      </span>
+                    )}
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          ) : (
+            /* Desktop: table */
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 420 }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+                    {['Date', 'Method', 'Amount', 'Reference', 'Status'].map(h => (
+                      <th key={h} style={{ fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 12px', textAlign: 'left', fontWeight: 400 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {history.map(p => (
+                    <tr key={p.id} style={{ borderBottom: '1px solid var(--color-border)' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--color-base-100)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <td style={{ fontSize: 12, color: 'var(--color-muted)', padding: '10px 12px', fontFamily: 'var(--font-mono)' }}>
+                        {new Date(p.created_at).toLocaleDateString('en-KE')}
+                      </td>
+                      <td style={{ padding: '10px 12px' }}>
+                        <span style={{
+                          fontSize: 11, fontFamily: 'var(--font-mono)',
+                          padding: '2px 8px', borderRadius: 3,
+                          background: p.method === 'mpesa' ? 'rgba(110,231,183,0.1)' : 'rgba(96,165,250,0.1)',
+                          color: p.method === 'mpesa' ? 'var(--color-accent)' : 'var(--color-info)',
+                          border: p.method === 'mpesa' ? '1px solid rgba(110,231,183,0.25)' : '1px solid rgba(96,165,250,0.25)',
+                        }}>
+                          {p.method.toUpperCase()}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: 13, color: 'var(--color-accent)', padding: '10px 12px', fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                        KES {p.amount.toLocaleString()}
+                      </td>
+                      <td style={{ fontSize: 11, color: 'var(--color-muted)', padding: '10px 12px', fontFamily: 'var(--font-mono)' }}>
+                        {p.transaction_reference ?? '—'}
+                      </td>
+                      <td style={{ padding: '10px 12px' }}>
+                        <span style={{
+                          fontSize: 11, fontFamily: 'var(--font-mono)',
+                          padding: '2px 8px', borderRadius: 3,
+                          background: p.status === 'success' ? 'rgba(110,231,183,0.1)' : 'rgba(248,113,113,0.1)',
+                          color: p.status === 'success' ? 'var(--color-accent)' : 'var(--color-danger)',
+                          border: p.status === 'success' ? '1px solid rgba(110,231,183,0.25)' : '1px solid rgba(248,113,113,0.25)',
+                        }}>
+                          {p.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Payment modal */}
-      {modal && (
-        <PaymentModal
-          plan={modal}
-          onClose={() => setModal(null)}
-        />
-      )}
+      {modal && <PaymentModal plan={modal} onClose={() => setModal(null)} />}
     </div>
   )
 }
 
 function PaymentModal({ plan, onClose }) {
-  const [method, setMethod]         = useState(null)
-  const [phone, setPhone]           = useState('')
-  const [loading, setLoading]       = useState(false)
-  const [error, setError]           = useState('')
+  const [method, setMethod]             = useState(null)
+  const [phone, setPhone]               = useState('')
+  const [loading, setLoading]           = useState(false)
+  const [error, setError]               = useState('')
   const [mpesaPending, setMpesaPending] = useState(null)
-  const [polling, setPolling]       = useState(false)
-  const [pollCount, setPollCount]   = useState(0)
+  const [polling, setPolling]           = useState(false)
+  const [pollCount, setPollCount]       = useState(0)
 
   useEffect(() => {
     if (!mpesaPending) return
@@ -244,7 +281,6 @@ function PaymentModal({ plan, onClose }) {
       setError('Payment timed out. If you completed the payment, it will reflect shortly.')
       return
     }
-
     const timer = setTimeout(async () => {
       try {
         const r = await api.post('/billing/mpesa/query', null, {
@@ -254,17 +290,13 @@ function PaymentModal({ plan, onClose }) {
         if (code === 0) {
           window.location.href = '/billing/success?plan=' + plan.key
         } else if (code !== undefined && code !== 1032) {
-          setMpesaPending(null)
-          setPolling(false)
+          setMpesaPending(null); setPolling(false)
           setError('Payment failed. Please try again.')
         } else {
           setPollCount(c => c + 1)
         }
-      } catch {
-        setPollCount(c => c + 1)
-      }
+      } catch { setPollCount(c => c + 1) }
     }, 5000)
-
     return () => clearTimeout(timer)
   }, [mpesaPending, pollCount])
 
@@ -274,11 +306,9 @@ function PaymentModal({ plan, onClose }) {
     try {
       const r = await api.post('/billing/mpesa/pay', { phone, plan: plan.key })
       setMpesaPending({ checkoutRequestId: r.data.checkout_request_id })
-      setPolling(true)
-      setPollCount(0)
-    } catch (err) {
-      setError(err.response?.data?.detail ?? 'M-Pesa request failed')
-    } finally { setLoading(false) }
+      setPolling(true); setPollCount(0)
+    } catch (err) { setError(err.response?.data?.detail ?? 'M-Pesa request failed') }
+    finally { setLoading(false) }
   }
 
   const handleStripe = async () => {
@@ -286,9 +316,8 @@ function PaymentModal({ plan, onClose }) {
     try {
       const r = await api.post('/billing/stripe/checkout', { plan: plan.key })
       window.location.href = r.data.checkout_url
-    } catch (err) {
-      setError(err.response?.data?.detail ?? 'Stripe checkout failed')
-    } finally { setLoading(false) }
+    } catch (err) { setError(err.response?.data?.detail ?? 'Stripe checkout failed') }
+    finally { setLoading(false) }
   }
 
   return (
@@ -302,6 +331,7 @@ function PaymentModal({ plan, onClose }) {
         background: 'var(--color-base-50)',
         border: '1px solid var(--color-border)',
         borderRadius: 8, overflow: 'hidden',
+        maxHeight: '90vh', overflowY: 'auto',
       }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)' }}>
           <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--color-text)', margin: 0 }}>
@@ -315,13 +345,13 @@ function PaymentModal({ plan, onClose }) {
         <div style={{ padding: '20px' }}>
           {error && <Alert type="error" message={error} onClose={() => setError('')} />}
 
-          {/* M-Pesa pending */}
           {mpesaPending ? (
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
-              <div className="spin" style={{
+              <div style={{
                 width: 40, height: 40, borderRadius: '50%', margin: '0 auto 20px',
                 border: '3px solid var(--color-border)',
                 borderTopColor: 'var(--color-accent)',
+                animation: 'spin 1s linear infinite',
               }} />
               <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--color-text)', margin: '0 0 10px' }}>
                 Check Your Phone
@@ -344,48 +374,33 @@ function PaymentModal({ plan, onClose }) {
 
           ) : !method ? (
             <>
-              <p style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 16 }}>
-                Choose your payment method:
-              </p>
+              <p style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 16 }}>Choose your payment method:</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <button onClick={() => setMethod('mpesa')} style={{
-                  display: 'flex', alignItems: 'center', gap: 14,
-                  padding: '14px 16px', borderRadius: 6, cursor: 'pointer',
-                  background: 'var(--color-base)', border: '1px solid var(--color-border)',
-                  transition: 'border-color .15s',
-                }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-accent)'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
-                >
-                  <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(110,231,183,0.1)', border: '1px solid rgba(110,231,183,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Smartphone size={18} color="var(--color-accent)" />
-                  </div>
-                  <div style={{ textAlign: 'left' }}>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>M-Pesa</p>
-                    <p style={{ fontSize: 12, color: 'var(--color-muted)', margin: '2px 0 0' }}>Pay via STK Push to your phone</p>
-                  </div>
-                </button>
-
-                <button onClick={() => setMethod('stripe')} style={{
-                  display: 'flex', alignItems: 'center', gap: 14,
-                  padding: '14px 16px', borderRadius: 6, cursor: 'pointer',
-                  background: 'var(--color-base)', border: '1px solid var(--color-border)',
-                  transition: 'border-color .15s',
-                }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-info)'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
-                >
-                  <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <CreditCard size={18} color="var(--color-info)" />
-                  </div>
-                  <div style={{ textAlign: 'left' }}>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>Card (Stripe)</p>
-                    <p style={{ fontSize: 12, color: 'var(--color-muted)', margin: '2px 0 0' }}>Pay with Visa, Mastercard or any card</p>
-                  </div>
-                </button>
+                {[
+                  { key: 'mpesa',  icon: <Smartphone size={18} color="var(--color-accent)" />, label: 'M-Pesa', sub: 'Pay via STK Push to your phone', bg: 'rgba(110,231,183,0.1)', border: 'rgba(110,231,183,0.2)', hover: 'var(--color-accent)' },
+                  { key: 'stripe', icon: <CreditCard size={18} color="var(--color-info)" />,   label: 'Card (Stripe)', sub: 'Pay with Visa, Mastercard or any card', bg: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.2)', hover: 'var(--color-info)' },
+                ].map(m => (
+                  <button key={m.key} onClick={() => setMethod(m.key)} style={{
+                    display: 'flex', alignItems: 'center', gap: 14,
+                    padding: '14px 16px', borderRadius: 6, cursor: 'pointer',
+                    background: 'var(--color-base)', border: '1px solid var(--color-border)',
+                    transition: 'border-color .15s', width: '100%',
+                  }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = m.hover}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+                  >
+                    <div style={{ width: 36, height: 36, borderRadius: 8, background: m.bg, border: `1px solid ${m.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {m.icon}
+                    </div>
+                    <div style={{ textAlign: 'left' }}>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{m.label}</p>
+                      <p style={{ fontSize: 12, color: 'var(--color-muted)', margin: '2px 0 0' }}>{m.sub}</p>
+                    </div>
+                  </button>
+                ))}
               </div>
-              <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
-                <BtnGhost style={{ flex: 1 }} onClick={onClose}>Cancel</BtnGhost>
+              <div style={{ marginTop: 16 }}>
+                <BtnGhost style={{ width: '100%' }} onClick={onClose}>Cancel</BtnGhost>
               </div>
             </>
 
@@ -400,8 +415,7 @@ function PaymentModal({ plan, onClose }) {
                   M-Pesa Phone Number
                 </label>
                 <input
-                  value={phone}
-                  onChange={e => setPhone(e.target.value)}
+                  value={phone} onChange={e => setPhone(e.target.value)}
                   placeholder="0712 345 678"
                   style={{
                     width: '100%', padding: '9px 12px', borderRadius: 4,
@@ -413,7 +427,7 @@ function PaymentModal({ plan, onClose }) {
                   onBlur={e => e.target.style.borderColor = 'var(--color-border)'}
                 />
                 <p style={{ fontSize: 11, color: 'var(--color-muted)' }}>
-                  You'll receive an STK push prompt on this number. Enter your PIN to pay KES {plan.price.toLocaleString()}.
+                  You'll receive an STK push prompt. Enter your PIN to pay KES {plan.price.toLocaleString()}.
                 </p>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -430,15 +444,13 @@ function PaymentModal({ plan, onClose }) {
                 <button onClick={() => setMethod(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', fontSize: 18, padding: 0, lineHeight: 1 }}>←</button>
                 <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>Pay with Card</p>
               </div>
-              <div style={{ background: 'var(--color-base)', border: '1px solid var(--color-border)', borderRadius: 6, padding: '16px', marginBottom: 20 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>Plan</span>
-                  <span style={{ fontSize: 13, color: 'var(--color-text)', fontWeight: 500 }}>Operix {plan.name}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>Duration</span>
-                  <span style={{ fontSize: 13, color: 'var(--color-text)' }}>30 days</span>
-                </div>
+              <div style={{ background: 'var(--color-base)', border: '1px solid var(--color-border)', borderRadius: 6, padding: 16, marginBottom: 20 }}>
+                {[['Plan', `Operix ${plan.name}`], ['Duration', '30 days']].map(([k, v]) => (
+                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{k}</span>
+                    <span style={{ fontSize: 13, color: 'var(--color-text)', fontWeight: 500 }}>{v}</span>
+                  </div>
+                ))}
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 10, borderTop: '1px solid var(--color-border)' }}>
                   <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>Total</span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 16, color: 'var(--color-accent)', fontWeight: 600 }}>KES {plan.price.toLocaleString()}</span>

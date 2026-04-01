@@ -15,16 +15,69 @@ const NAV = [
   { to: '/reports',    icon: BarChart2,        label: 'Reports'    },
   { to: '/team',       icon: Users,           label: 'Team'       },
   { to: '/billing',    icon: CreditCard,      label: 'Billing'    },
-  { to: '/settings', icon: Settings, label: 'Settings' },
+  { to: '/settings',   icon: Settings,        label: 'Settings'   },
 ]
+
+// Bottom nav items for mobile (most important 5)
+const MOBILE_NAV = [
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Home'      },
+  { to: '/inventory',  icon: Boxes,           label: 'Inventory' },
+  { to: '/sales',      icon: ShoppingCart,    label: 'Sales'     },
+  { to: '/reports',    icon: BarChart2,        label: 'Reports'   },
+  { to: '/settings',   icon: Settings,        label: 'Settings'  },
+]
+
+const isMobileDevice = () => window.innerWidth < 640
 
 export default function Sidebar() {
   const [open, setOpen]   = useState(true)
   const { user, logout }  = useAuth()
   const { theme, toggle } = useTheme()
   const navigate          = useNavigate()
-  const W = open ? 210 : 52
   const isDark = theme === 'dark'
+
+  // Mobile: render bottom nav bar instead
+  if (isMobileDevice()) {
+    return (
+      <nav style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
+        background: 'var(--color-base-50)',
+        borderTop: '1px solid var(--color-border)',
+        display: 'flex', alignItems: 'center',
+        height: 60, paddingBottom: 'env(safe-area-inset-bottom)',
+      }}>
+        {MOBILE_NAV.map(({ to, icon: Icon, label }) => (
+          <NavLink key={to} to={to}
+            style={({ isActive }) => ({
+              flex: 1, display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center', gap: 3,
+              textDecoration: 'none', padding: '6px 0',
+              color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
+            })}
+          >
+            {({ isActive }) => (
+              <>
+                <Icon size={20} style={{ flexShrink: 0 }} />
+                <span style={{ fontSize: 9, fontFamily: 'var(--font-sans)', letterSpacing: '0.02em' }}>
+                  {label}
+                </span>
+                {isActive && (
+                  <span style={{
+                    position: 'absolute', top: 0,
+                    width: 24, height: 2, borderRadius: 1,
+                    background: 'var(--color-accent)',
+                  }} />
+                )}
+              </>
+            )}
+          </NavLink>
+        ))}
+      </nav>
+    )
+  }
+
+  // Desktop: original sidebar
+  const W = open ? 210 : 52
 
   return (
     <aside style={{
@@ -54,8 +107,7 @@ export default function Sidebar() {
         <button onClick={() => setOpen(o => !o)} style={{
           background: 'none', border: 'none', cursor: 'pointer',
           padding: 6, color: 'var(--color-muted)',
-          display: 'flex', borderRadius: 4,
-          transition: 'color .15s',
+          display: 'flex', borderRadius: 4, transition: 'color .15s',
         }}
           onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
           onMouseLeave={e => e.currentTarget.style.color = 'var(--color-muted)'}
@@ -102,8 +154,6 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div style={{ padding: 8, borderTop: '1px solid var(--color-border)', flexShrink: 0 }}>
-
-        {/* User info */}
         {open && user && (
           <div style={{ padding: '6px 10px 10px' }}>
             <p style={{
@@ -117,10 +167,7 @@ export default function Sidebar() {
           </div>
         )}
 
-        {/* Theme toggle */}
-        <button
-          onClick={toggle}
-          title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        <button onClick={toggle} title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           style={{
             display: 'flex', alignItems: 'center', gap: 10,
             width: '100%', padding: '8px 8px', borderRadius: 4,
@@ -129,33 +176,16 @@ export default function Sidebar() {
             justifyContent: open ? 'flex-start' : 'center',
             background: isDark ? 'rgba(251,191,36,0.06)' : 'rgba(99,102,241,0.07)',
             color: isDark ? 'var(--color-warning)' : 'var(--color-info)',
-            marginBottom: 2,
-            transition: 'all .15s',
+            marginBottom: 2, transition: 'all .15s',
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = isDark
-              ? 'rgba(251,191,36,0.12)'
-              : 'rgba(99,102,241,0.14)'
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = isDark
-              ? 'rgba(251,191,36,0.06)'
-              : 'rgba(99,102,241,0.07)'
-          }}
+          onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(251,191,36,0.12)' : 'rgba(99,102,241,0.14)'}
+          onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(251,191,36,0.06)' : 'rgba(99,102,241,0.07)'}
         >
-          {isDark
-            ? <Sun  size={15} style={{ flexShrink: 0 }} />
-            : <Moon size={15} style={{ flexShrink: 0 }} />
-          }
-          {open && (
-            <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
-          )}
+          {isDark ? <Sun size={15} style={{ flexShrink: 0 }} /> : <Moon size={15} style={{ flexShrink: 0 }} />}
+          {open && <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
         </button>
 
-        {/* Logout */}
-        <button
-          onClick={() => { logout(); navigate('/login') }}
-          title={!open ? 'Logout' : undefined}
+        <button onClick={() => { logout(); navigate('/login') }} title={!open ? 'Logout' : undefined}
           style={{
             display: 'flex', alignItems: 'center', gap: 10,
             width: '100%', padding: '8px 8px', borderRadius: 4,
@@ -165,16 +195,8 @@ export default function Sidebar() {
             justifyContent: open ? 'flex-start' : 'center',
             transition: 'all .15s',
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.color = 'var(--color-danger)'
-            e.currentTarget.style.background = isDark
-              ? 'rgba(248,113,113,0.07)'
-              : 'rgba(220,38,38,0.07)'
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.color = 'var(--color-muted)'
-            e.currentTarget.style.background = 'transparent'
-          }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.background = isDark ? 'rgba(248,113,113,0.07)' : 'rgba(220,38,38,0.07)' }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-muted)'; e.currentTarget.style.background = 'transparent' }}
         >
           <LogOut size={15} style={{ flexShrink: 0 }} />
           {open && <span>Logout</span>}

@@ -6,8 +6,8 @@ import { Modal, Field, Input, Select, BtnPrimary, BtnGhost, Alert, Badge, Empty,
 
 const card = { background: 'var(--color-base-50)', border: '1px solid var(--color-border)', borderRadius: 6 }
 const row  = { borderBottom: '1px solid var(--color-border)' }
-const th   = { fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 16px', textAlign: 'left', fontWeight: 400 }
-const td   = { fontSize: 13, color: 'var(--color-text)', padding: '10px 16px' }
+const th   = { fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 12px', textAlign: 'left', fontWeight: 400 }
+const td   = { fontSize: 13, color: 'var(--color-text)', padding: '10px 12px' }
 
 export default function Team() {
   const { user: me }          = useAuth()
@@ -31,12 +31,15 @@ export default function Team() {
 
   if (loading) return <PageLoader />
 
+  const isMobile = window.innerWidth < 640
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'var(--color-text)', margin: 0 }}>Team</h1>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, color: 'var(--color-text)', margin: 0 }}>Team</h1>
           <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>{users.length} members</p>
         </div>
         {me?.role === 'owner' && (
@@ -46,69 +49,120 @@ export default function Team() {
 
       {error && <Alert type="error" message={error} onClose={() => setError('')} />}
 
-      <div style={card}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={row}>
-              <th style={th}>Name</th>
-              <th style={th}>Email</th>
-              <th style={th}>Role</th>
-              <th style={th}>Status</th>
-              {me?.role === 'owner' && <th style={th}></th>}
-            </tr>
-          </thead>
-          <tbody>
-            {users.length === 0 ? (
-              <tr><td colSpan={5}><Empty icon={Users} title="No team members" description="Add employees to your organisation" /></td></tr>
-            ) : users.map(u => (
-              <tr key={u.id} style={row}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--color-base-100)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >
-                <td style={td}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{
-                      width: 30, height: 30, borderRadius: 6,
-                      background: 'var(--color-base-200)',
-                      border: '1px solid var(--color-border)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 13, fontFamily: 'var(--font-mono)',
-                      color: 'var(--color-accent)', flexShrink: 0
-                    }}>
-                      {u.full_name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text)', margin: 0 }}>{u.full_name}</p>
-                      {u.id === me?.id && (
-                        <span style={{ fontSize: 10, color: 'var(--color-muted)', fontFamily: 'var(--font-mono)' }}>you</span>
-                      )}
-                    </div>
-                  </div>
-                </td>
-                <td style={{ ...td, fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-muted)' }}>{u.email}</td>
-                <td style={td}><Badge status={u.role} /></td>
-                <td style={td}><Badge status={u.is_active ? 'active' : 'inactive'} /></td>
-                {me?.role === 'owner' && (
-                  <td style={{ ...td, textAlign: 'right' }}>
-                    {u.id !== me?.id && (
-                      <button onClick={() => toggle(u)} style={{
-                        fontSize: 12, background: 'none', border: 'none', cursor: 'pointer',
-                        color: u.is_active ? 'var(--color-danger)' : 'var(--color-accent)',
-                        transition: 'opacity .15s'
-                      }}
-                        onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
-                        onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-                      >
-                        {u.is_active ? 'Deactivate' : 'Activate'}
-                      </button>
+      {/* Mobile: card list */}
+      {isMobile ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {users.length === 0 ? (
+            <Empty icon={Users} title="No team members" description="Add employees to your organisation" />
+          ) : users.map(u => (
+            <div key={u.id} style={{ ...card, padding: '14px 16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                <div style={{
+                  width: 34, height: 34, borderRadius: 6,
+                  background: 'var(--color-base-200)',
+                  border: '1px solid var(--color-border)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 14, fontFamily: 'var(--font-mono)',
+                  color: 'var(--color-accent)', flexShrink: 0
+                }}>
+                  {u.full_name.charAt(0).toUpperCase()}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {u.full_name}
+                    </p>
+                    {u.id === me?.id && (
+                      <span style={{ fontSize: 10, color: 'var(--color-muted)', fontFamily: 'var(--font-mono)', flexShrink: 0 }}>you</span>
                     )}
-                  </td>
+                  </div>
+                  <p style={{ fontSize: 12, color: 'var(--color-muted)', fontFamily: 'var(--font-mono)', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {u.email}
+                  </p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <Badge status={u.role} />
+                <Badge status={u.is_active ? 'active' : 'inactive'} />
+                {me?.role === 'owner' && u.id !== me?.id && (
+                  <button onClick={() => toggle(u)} style={{
+                    fontSize: 12, background: 'none', border: 'none', cursor: 'pointer',
+                    color: u.is_active ? 'var(--color-danger)' : 'var(--color-accent)',
+                    marginLeft: 'auto', padding: 0,
+                  }}>
+                    {u.is_active ? 'Deactivate' : 'Activate'}
+                  </button>
                 )}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Desktop: table */
+        <div style={{ ...card, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 420 }}>
+            <thead>
+              <tr style={row}>
+                <th style={th}>Name</th>
+                <th style={th}>Email</th>
+                <th style={th}>Role</th>
+                <th style={th}>Status</th>
+                {me?.role === 'owner' && <th style={th}></th>}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {users.length === 0 ? (
+                <tr><td colSpan={5}><Empty icon={Users} title="No team members" description="Add employees to your organisation" /></td></tr>
+              ) : users.map(u => (
+                <tr key={u.id} style={row}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--color-base-100)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <td style={td}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{
+                        width: 30, height: 30, borderRadius: 6,
+                        background: 'var(--color-base-200)',
+                        border: '1px solid var(--color-border)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 13, fontFamily: 'var(--font-mono)',
+                        color: 'var(--color-accent)', flexShrink: 0
+                      }}>
+                        {u.full_name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text)', margin: 0 }}>{u.full_name}</p>
+                        {u.id === me?.id && (
+                          <span style={{ fontSize: 10, color: 'var(--color-muted)', fontFamily: 'var(--font-mono)' }}>you</span>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ ...td, fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-muted)' }}>{u.email}</td>
+                  <td style={td}><Badge status={u.role} /></td>
+                  <td style={td}><Badge status={u.is_active ? 'active' : 'inactive'} /></td>
+                  {me?.role === 'owner' && (
+                    <td style={{ ...td, textAlign: 'right' }}>
+                      {u.id !== me?.id && (
+                        <button onClick={() => toggle(u)} style={{
+                          fontSize: 12, background: 'none', border: 'none', cursor: 'pointer',
+                          color: u.is_active ? 'var(--color-danger)' : 'var(--color-accent)',
+                          transition: 'opacity .15s'
+                        }}
+                          onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
+                          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                        >
+                          {u.is_active ? 'Deactivate' : 'Activate'}
+                        </button>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <AddUserModal open={modal} onClose={() => setModal(false)} onSaved={() => { load(); setModal(false) }} />
     </div>

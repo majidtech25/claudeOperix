@@ -5,8 +5,8 @@ import { Modal, Field, Input, Select, BtnPrimary, BtnGhost, Alert, Badge, Empty,
 
 const card = { background: 'var(--color-base-50)', border: '1px solid var(--color-border)', borderRadius: 6 }
 const row  = { borderBottom: '1px solid var(--color-border)' }
-const th   = { fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 16px', textAlign: 'left', fontWeight: 400 }
-const td   = { fontSize: 13, color: 'var(--color-text)', padding: '10px 16px' }
+const th   = { fontSize: 10, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 12px', textAlign: 'left', fontWeight: 400 }
+const td   = { fontSize: 13, color: 'var(--color-text)', padding: '10px 12px' }
 
 export default function Inventory() {
   const [tab, setTab]               = useState('products')
@@ -36,12 +36,15 @@ export default function Inventory() {
 
   if (loading) return <PageLoader />
 
+  const isMobile = window.innerWidth < 640
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: 'var(--color-text)', margin: 0 }}>Inventory</h1>
-        <div style={{ display: 'flex', gap: 8 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, color: 'var(--color-text)', margin: 0 }}>Inventory</h1>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <BtnGhost onClick={() => setCategoryModal(true)}>+ Category</BtnGhost>
           <BtnPrimary onClick={() => { setEditProduct(null); setProductModal(true) }}>
             <Plus size={14} /> Add Product
@@ -73,70 +76,117 @@ export default function Inventory() {
             <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)', pointerEvents: 'none' }} />
             <Input style={{ paddingLeft: 30 }} placeholder="Search name or SKU…" value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-          <div style={card}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={row}>
-                  <th style={th}>Product</th>
-                  <th style={th}>Category</th>
-                  <th style={th}>Price</th>
-                  <th style={th}>Stock</th>
-                  <th style={th}>Status</th>
-                  <th style={th}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr><td colSpan={6}><Empty title="No products" description="Add your first product to start tracking" /></td></tr>
-                ) : filtered.map(p => {
-                  const isLow = p.track_inventory && p.stock_quantity <= p.low_stock_threshold
-                  const cat   = categories.find(c => c.id === p.category_id)
-                  return (
-                    <tr key={p.id} style={row}
-                      onMouseEnter={e => e.currentTarget.style.background = 'var(--color-base-100)'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <td style={td}>
-                        <p style={{ margin: 0, fontWeight: 500, color: 'var(--color-text)' }}>{p.name}</p>
-                        {p.sku && <p style={{ margin: 0, fontSize: 11, color: 'var(--color-muted)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>{p.sku}</p>}
-                      </td>
-                      <td style={{ ...td, color: 'var(--color-muted)', fontSize: 12 }}>{cat?.name ?? '—'}</td>
-                      <td style={{ ...td, fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{fmt(p.selling_price)}</td>
-                      <td style={td}>
-                        <span style={{ fontFamily: 'var(--font-mono)', color: isLow ? 'var(--color-danger)' : 'var(--color-text)' }}>
-                          {p.track_inventory ? p.stock_quantity : '∞'}
-                        </span>
-                        {isLow && <span style={{ fontSize: 10, color: 'var(--color-danger)', marginLeft: 5 }}>low</span>}
-                      </td>
-                      <td style={td}><Badge status={p.is_active ? 'active' : 'inactive'} /></td>
-                      <td style={td}>
-                        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-                          <button title="Adjust stock" onClick={() => setAdjustModal(p)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', display: 'flex' }}
-                            onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
-                            onMouseLeave={e => e.currentTarget.style.color = 'var(--color-muted)'}>
-                            <TrendingUp size={14} />
-                          </button>
-                          <button title="Edit" onClick={() => { setEditProduct(p); setProductModal(true) }}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', display: 'flex' }}
-                            onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
-                            onMouseLeave={e => e.currentTarget.style.color = 'var(--color-muted)'}>
-                            <Edit2 size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+
+          {/* Mobile: card list */}
+          {isMobile ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {filtered.length === 0 ? (
+                <Empty title="No products" description="Add your first product to start tracking" />
+              ) : filtered.map(p => {
+                const isLow = p.track_inventory && p.stock_quantity <= p.low_stock_threshold
+                const cat   = categories.find(c => c.id === p.category_id)
+                return (
+                  <div key={p.id} style={{ ...card, padding: '14px 16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</p>
+                        {p.sku && <p style={{ margin: '2px 0 0', fontSize: 11, color: 'var(--color-muted)', fontFamily: 'var(--font-mono)' }}>{p.sku}</p>}
+                      </div>
+                      <div style={{ display: 'flex', gap: 12, marginLeft: 12, flexShrink: 0 }}>
+                        <button title="Adjust stock" onClick={() => setAdjustModal(p)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', display: 'flex' }}>
+                          <TrendingUp size={15} />
+                        </button>
+                        <button title="Edit" onClick={() => { setEditProduct(p); setProductModal(true) }}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', display: 'flex' }}>
+                          <Edit2 size={15} />
+                        </button>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--color-accent)', fontWeight: 600 }}>{fmt(p.selling_price)}</span>
+                      {cat && <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{cat.name}</span>}
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: isLow ? 'var(--color-danger)' : 'var(--color-muted)' }}>
+                        Stock: {p.track_inventory ? p.stock_quantity : '∞'}
+                        {isLow && <span style={{ marginLeft: 4, color: 'var(--color-danger)' }}>⚠ low</span>}
+                      </span>
+                      <Badge status={p.is_active ? 'active' : 'inactive'} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            /* Desktop: table */
+            <div style={{ ...card, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 500 }}>
+                <thead>
+                  <tr style={row}>
+                    <th style={th}>Product</th>
+                    <th style={th}>Category</th>
+                    <th style={th}>Price</th>
+                    <th style={th}>Stock</th>
+                    <th style={th}>Status</th>
+                    <th style={th}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.length === 0 ? (
+                    <tr><td colSpan={6}><Empty title="No products" description="Add your first product to start tracking" /></td></tr>
+                  ) : filtered.map(p => {
+                    const isLow = p.track_inventory && p.stock_quantity <= p.low_stock_threshold
+                    const cat   = categories.find(c => c.id === p.category_id)
+                    return (
+                      <tr key={p.id} style={row}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--color-base-100)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <td style={td}>
+                          <p style={{ margin: 0, fontWeight: 500 }}>{p.name}</p>
+                          {p.sku && <p style={{ margin: 0, fontSize: 11, color: 'var(--color-muted)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>{p.sku}</p>}
+                        </td>
+                        <td style={{ ...td, color: 'var(--color-muted)', fontSize: 12 }}>{cat?.name ?? '—'}</td>
+                        <td style={{ ...td, fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{fmt(p.selling_price)}</td>
+                        <td style={td}>
+                          <span style={{ fontFamily: 'var(--font-mono)', color: isLow ? 'var(--color-danger)' : 'var(--color-text)' }}>
+                            {p.track_inventory ? p.stock_quantity : '∞'}
+                          </span>
+                          {isLow && <span style={{ fontSize: 10, color: 'var(--color-danger)', marginLeft: 5 }}>low</span>}
+                        </td>
+                        <td style={td}><Badge status={p.is_active ? 'active' : 'inactive'} /></td>
+                        <td style={td}>
+                          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+                            <button title="Adjust stock" onClick={() => setAdjustModal(p)}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', display: 'flex' }}
+                              onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
+                              onMouseLeave={e => e.currentTarget.style.color = 'var(--color-muted)'}>
+                              <TrendingUp size={14} />
+                            </button>
+                            <button title="Edit" onClick={() => { setEditProduct(p); setProductModal(true) }}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', display: 'flex' }}
+                              onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
+                              onMouseLeave={e => e.currentTarget.style.color = 'var(--color-muted)'}>
+                              <Edit2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </>
       )}
 
       {/* Categories tab */}
       {tab === 'categories' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)',
+          gap: 12
+        }}>
           {categories.length === 0
             ? <div style={{ gridColumn: '1/-1' }}><Empty title="No categories" description="Create categories to organise your products" /></div>
             : categories.map(c => (
@@ -213,19 +263,21 @@ function ProductModal({ open, onClose, categories, product, onSaved }) {
     finally { setLoading(false) }
   }
 
+  const isMobile = window.innerWidth < 640
+
   return (
     <Modal open={open} onClose={onClose} title={isEdit ? 'Edit Product' : 'Add Product'} width={520}>
       <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <Alert type="error" message={error} onClose={() => setError('')} />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
           <Field label="Name *"><Input value={form.name} onChange={set('name')} required placeholder="Product name" /></Field>
           <Field label="SKU"><Input value={form.sku} onChange={set('sku')} placeholder="Optional" /></Field>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
           <Field label="Selling Price *"><Input type="number" step="0.01" min="0" value={form.selling_price} onChange={set('selling_price')} required placeholder="0.00" /></Field>
           <Field label="Cost Price"><Input type="number" step="0.01" min="0" value={form.cost_price} onChange={set('cost_price')} placeholder="0.00" /></Field>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
           <Field label="Category">
             <Select value={form.category_id} onChange={set('category_id')}>
               <option value="">No category</option>
