@@ -1,5 +1,10 @@
-const CACHE    = 'operix-v1'
-const PRECACHE = ['/', '/dashboard', '/sales', '/inventory']
+const CACHE = 'operix-v2'  // bumped version to force update
+
+// Only precache real files, NOT SPA routes
+const PRECACHE = [
+  '/',
+  '/index.html',
+]
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -18,17 +23,39 @@ self.addEventListener('activate', e => {
 })
 
 self.addEventListener('fetch', e => {
-  // Only cache GET requests, skip API calls
+  // Skip non-GET requests
   if (e.request.method !== 'GET') return
+
+  // Skip API calls — always go to network
   if (e.request.url.includes('/api/')) return
+
+  // Skip cross-origin requests
+  if (!e.request.url.startsWith(self.location.origin)) return
 
   e.respondWith(
     fetch(e.request)
       .then(res => {
-        const clone = res.clone()
-        caches.open(CACHE).then(cache => cache.put(e.request, clone))
+        // Only cache successful responses
+        if (res && res.status === 200) {
+          const clone = res.clone()
+          caches.open(CACHE).then(cache => cache.put(e.request, clone))
+        }
         return res
       })
-      .catch(() => caches.match(e.request))
+      .catch(() => {
+        // Offline fallback — serve index.html for any navigation request
+        // This is what makes SPA routing work offline
+        if (e.request.mode === 'navigate') {
+          return caches.match('/index.html')
+        }
+        return caches.match(e.request)
+      })
   )
+})
+
+// Listen for theme messages from the app
+self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
 })

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 import { Alert, Field, Input, BtnPrimary, Spinner } from '../../components/ui'
+import { Sun, Moon } from 'lucide-react'
 import api from '../../api/client'
 
 export default function Settings() {
@@ -19,20 +21,105 @@ export default function Settings() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)' }}>
-        {['profile', 'password'].map(t => (
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', overflowX: 'auto' }}>
+        {['profile', 'password', 'appearance'].map(t => (
           <button key={t} onClick={() => setTab(t)} style={{
             padding: '8px 16px', background: 'none', border: 'none', cursor: 'pointer',
-            fontFamily: 'var(--font-sans)', fontSize: 13, textTransform: 'capitalize',
+            fontFamily: 'var(--font-sans)', fontSize: 13, whiteSpace: 'nowrap',
             color: tab === t ? 'var(--color-accent)' : 'var(--color-muted)',
             borderBottom: tab === t ? '2px solid var(--color-accent)' : '2px solid transparent',
             marginBottom: -1,
-          }}>{t === 'profile' ? 'Business Profile' : 'Change Password'}</button>
+          }}>
+            {t === 'profile' ? 'Business Profile' : t === 'password' ? 'Change Password' : 'Appearance'}
+          </button>
         ))}
       </div>
 
-      {tab === 'profile' && <ProfileForm />}
-      {tab === 'password' && <PasswordForm />}
+      {tab === 'profile'    && <ProfileForm />}
+      {tab === 'password'   && <PasswordForm />}
+      {tab === 'appearance' && <AppearanceForm />}
+    </div>
+  )
+}
+
+function AppearanceForm() {
+  const { theme, toggle } = useTheme()
+  const isDark = theme === 'dark'
+  const isMobile = window.innerWidth < 640
+  const card = { background: 'var(--color-base-50)', border: '1px solid var(--color-border)', borderRadius: 6, padding: isMobile ? '16px' : '24px' }
+
+  return (
+    <div style={card}>
+      <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', margin: '0 0 4px' }}>
+        Theme
+      </p>
+      <p style={{ fontSize: 12, color: 'var(--color-muted)', margin: '0 0 20px' }}>
+        Choose how Operix looks on your device
+      </p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        {/* Light mode option */}
+        <button onClick={() => isDark && toggle()} style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
+          padding: '20px 16px', borderRadius: 8, cursor: 'pointer',
+          border: !isDark ? '2px solid var(--color-accent)' : '2px solid var(--color-border)',
+          background: !isDark ? 'rgba(5,150,105,0.05)' : 'var(--color-base)',
+          transition: 'all .15s',
+        }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 12,
+            background: '#ffffff', border: '1px solid #e5e7eb',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          }}>
+            <Sun size={22} color="#f59e0b" />
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', margin: '0 0 2px' }}>Light</p>
+            <p style={{ fontSize: 11, color: 'var(--color-muted)', margin: 0 }}>Clean & bright</p>
+          </div>
+          {!isDark && (
+            <span style={{
+              fontSize: 10, padding: '2px 8px', borderRadius: 999,
+              background: 'var(--color-accent)', color: '#fff',
+              fontWeight: 600, letterSpacing: '0.05em',
+            }}>ACTIVE</span>
+          )}
+        </button>
+
+        {/* Dark mode option */}
+        <button onClick={() => !isDark && toggle()} style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
+          padding: '20px 16px', borderRadius: 8, cursor: 'pointer',
+          border: isDark ? '2px solid var(--color-accent)' : '2px solid var(--color-border)',
+          background: isDark ? 'rgba(110,231,183,0.05)' : 'var(--color-base)',
+          transition: 'all .15s',
+        }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 12,
+            background: '#0a0d14', border: '1px solid #1f2937',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          }}>
+            <Moon size={22} color="#6ee7b7" />
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', margin: '0 0 2px' }}>Dark</p>
+            <p style={{ fontSize: 11, color: 'var(--color-muted)', margin: 0 }}>Easy on the eyes</p>
+          </div>
+          {isDark && (
+            <span style={{
+              fontSize: 10, padding: '2px 8px', borderRadius: 999,
+              background: 'var(--color-accent)', color: '#fff',
+              fontWeight: 600, letterSpacing: '0.05em',
+            }}>ACTIVE</span>
+          )}
+        </button>
+      </div>
+
+      <p style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 16, textAlign: 'center' }}>
+        Your preference is saved automatically
+      </p>
     </div>
   )
 }
@@ -83,8 +170,6 @@ function ProfileForm() {
       <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <Alert type="error"   message={error}   onClose={() => setError('')}   />
         <Alert type="success" message={success} onClose={() => setSuccess('')} />
-
-        {/* Single column on mobile, two columns on desktop */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
           <Field label="Business Name *">
             <Input value={form.name} onChange={set('name')} required placeholder="My Shop Ltd" />
