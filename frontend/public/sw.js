@@ -1,14 +1,8 @@
-const CACHE = 'operix-v2'  // bumped version to force update
-
-// Only precache real files, NOT SPA routes
-const PRECACHE = [
-  '/',
-  '/index.html',
-]
+const CACHE = 'operix-v3'
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(PRECACHE))
+    caches.open(CACHE).then(cache => cache.add('/'))
   )
   self.skipWaiting()
 })
@@ -35,7 +29,6 @@ self.addEventListener('fetch', e => {
   e.respondWith(
     fetch(e.request)
       .then(res => {
-        // Only cache successful responses
         if (res && res.status === 200) {
           const clone = res.clone()
           caches.open(CACHE).then(cache => cache.put(e.request, clone))
@@ -43,17 +36,12 @@ self.addEventListener('fetch', e => {
         return res
       })
       .catch(() => {
-        // Offline fallback — serve index.html for any navigation request
-        // This is what makes SPA routing work offline
-        if (e.request.mode === 'navigate') {
-          return caches.match('/index.html')
-        }
-        return caches.match(e.request)
+        // Offline: always serve root for navigation
+        return caches.match('/')
       })
   )
 })
 
-// Listen for theme messages from the app
 self.addEventListener('message', e => {
   if (e.data && e.data.type === 'SKIP_WAITING') {
     self.skipWaiting()
