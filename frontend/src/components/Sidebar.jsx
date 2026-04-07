@@ -38,43 +38,60 @@ export default function Sidebar() {
 
   // Mobile: render bottom nav bar instead
   if (isMobileDevice()) {
-    return (
-      <nav style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
-        background: 'var(--color-base-50)',
-        borderTop: '1px solid var(--color-border)',
-        display: 'flex', alignItems: 'center',
-        height: 60, paddingBottom: 'env(safe-area-inset-bottom)',
-      }}>
-        {MOBILE_NAV.map(({ to, icon: Icon, label }) => (
-          <NavLink key={to} to={to}
-            style={({ isActive }) => ({
-              flex: 1, display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center', gap: 3,
-              textDecoration: 'none', padding: '6px 0',
-              color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
-            })}
-          >
-            {({ isActive }) => (
-              <>
-                <Icon size={20} style={{ flexShrink: 0 }} />
-                <span style={{ fontSize: 9, fontFamily: 'var(--font-sans)', letterSpacing: '0.02em' }}>
-                  {label}
-                </span>
-                {isActive && (
-                  <span style={{
-                    position: 'absolute', top: 0,
-                    width: 24, height: 2, borderRadius: 1,
-                    background: 'var(--color-accent)',
-                  }} />
-                )}
-              </>
-            )}
-          </NavLink>
-        ))}
-      </nav>
-    )
-  }
+  return (
+    <nav style={{
+      position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
+      background: 'var(--color-base-50)',
+      borderTop: '1px solid var(--color-border)',
+      display: 'flex', alignItems: 'center',
+      height: 60, paddingBottom: 'env(safe-area-inset-bottom)',
+    }}>
+      {MOBILE_NAV.map(({ to, icon: Icon, label }) => (
+        <NavLink key={to} to={to}
+          style={({ isActive }) => ({
+            flex: 1, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: 3,
+            textDecoration: 'none', padding: '6px 0',
+            color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
+            position: 'relative',
+          })}
+        >
+          {({ isActive }) => (
+            <>
+              <Icon size={20} style={{ flexShrink: 0 }} />
+              <span style={{ fontSize: 9, fontFamily: 'var(--font-sans)', letterSpacing: '0.02em' }}>
+                {label}
+              </span>
+              {isActive && (
+                <span style={{
+                  position: 'absolute', top: 0,
+                  width: 24, height: 2, borderRadius: 1,
+                  background: 'var(--color-accent)',
+                }} />
+              )}
+            </>
+          )}
+        </NavLink>
+      ))}
+
+      {/* Logout button */}
+      <button
+        onClick={() => { logout(); navigate('/login') }}
+        style={{
+          flex: 1, display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', gap: 3,
+          padding: '6px 0', background: 'none', border: 'none',
+          cursor: 'pointer', color: 'var(--color-muted)',
+        }}
+      >
+        <LogOut size={20} />
+        <span style={{ fontSize: 9, fontFamily: 'var(--font-sans)', letterSpacing: '0.02em' }}>
+          Logout
+        </span>
+      </button>
+    </nav>
+  )
+}
 
   // Desktop: original sidebar
   const W = open ? 210 : 52

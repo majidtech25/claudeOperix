@@ -42,6 +42,13 @@ function Counter({ to, suffix = '', prefix = '' }) {
 }
 
 export default function Landing() {
+  const navigate = useNavigate()
+
+  // If user has a token, redirect to login instead of showing landing
+  useEffect(() => {
+    const token = localStorage.getItem('access_token')
+    if (token) navigate('/login', { replace: true })
+  }, [])
   const [menuOpen, setMenuOpen]     = useState(false)
   const [scrolled, setScrolled]     = useState(false)
   const [billingModal, setBillingModal] = useState(null) // { plan, name, price }
