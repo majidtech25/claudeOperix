@@ -16,6 +16,13 @@ def get_database_url() -> str:
 
 DATABASE_URL = get_database_url()
 
+if "sqlite" in DATABASE_URL:
+    connect_args = {"check_same_thread": False}
+elif "postgresql+asyncpg" in DATABASE_URL:
+    connect_args = {"ssl": "require"}
+else:
+    connect_args = {}
+
 engine = create_async_engine(
     DATABASE_URL,
     echo=settings.DEBUG,
